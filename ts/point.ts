@@ -8,6 +8,10 @@ class Point {
         this.y = _y;
         this.shared = 0;
     }
+
+    Distance = (_p : Point) : number => {
+        return Math.sqrt((this.x - _p.x)**2 + (this.y - _p.y)**2);
+    }
 }
 
 const IsPointSame = (_p0 : Point, _p1 : Point) : boolean => {
