@@ -17,6 +17,12 @@ $svg.addEventListener("mousedown", (e) => {
                 LineList.splice(i, 1);
             }
         }
+        for (let i : number = PointList.length - 1; i >= 0; --i) {
+            if(PointList[i].shared === 0) {
+                PointList.splice(i, 1);
+            }
+        }
+        console.log(PointList, LineList);
     }
 });
 $svg.addEventListener("mousemove", (e) => {
@@ -45,8 +51,7 @@ $svg.addEventListener("mouseup", (e) => {
             const line = new Line(Point0, Point1);
             LineList.push(line)
             line.Draw($svg, "black");
-            console.log(PointList);
-            console.log(LineList);
+            console.log(PointList, LineList);
         }
     }
 });

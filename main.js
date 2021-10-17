@@ -7,16 +7,14 @@ var Point = /** @class */ (function () {
         this.x = _x;
         this.y = _y;
         this.shared = 0;
+        this.isfixed = false;
     }
     return Point;
 }());
-var IsPointSame = function (_p0, _p1) {
-    return Math.pow(_p0.x - _p1.x, 2.0) + Math.pow(_p0.y - _p1.y, 2.0) < 50;
-};
 var OverwritePoint = function (_point, _pointlist) {
     var point = _point;
     for (var i = 0; i < _pointlist.length; ++i) {
-        if (IsPointSame(_point, _pointlist[i])) {
+        if (_point.Distance(_pointlist[i]) < 5) {
             point = _pointlist[i];
         }
     }
@@ -37,14 +35,14 @@ var Line = /** @class */ (function () {
             $circle1.id = _this.id + "_circle1";
             $circle1.setAttributeNS(null, "cx", "" + _this.p1.x);
             $circle1.setAttributeNS(null, "cy", "" + _this.p1.y);
-            $circle1.setAttributeNS(null, "r", "" + 7);
+            $circle1.setAttributeNS(null, "r", "" + 5);
             $circle1.setAttributeNS(null, "stroke", _color);
             _$svg.appendChild($circle1);
             var $circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             $circle2.id = _this.id + "_circle2";
             $circle2.setAttributeNS(null, "cx", "" + _this.p2.x);
             $circle2.setAttributeNS(null, "cy", "" + _this.p2.y);
-            $circle2.setAttributeNS(null, "r", "" + 7);
+            $circle2.setAttributeNS(null, "r", "" + 5);
             $circle2.setAttributeNS(null, "stroke", _color);
             _$svg.appendChild($circle2);
         };
@@ -109,6 +107,12 @@ $svg.addEventListener("mousedown", function (e) {
                 LineList.splice(i, 1);
             }
         }
+        for (var i = PointList.length - 1; i >= 0; --i) {
+            if (PointList[i].shared === 0) {
+                PointList.splice(i, 1);
+            }
+        }
+        console.log(PointList, LineList);
     }
 });
 $svg.addEventListener("mousemove", function (e) {
@@ -137,8 +141,7 @@ $svg.addEventListener("mouseup", function (e) {
             var line = new Line(Point0, Point1);
             LineList.push(line);
             line.Draw($svg, "black");
-            console.log(PointList);
-            console.log(LineList);
+            console.log(PointList, LineList);
         }
     }
 });

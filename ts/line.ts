@@ -25,14 +25,14 @@ class Line {
         $circle1.id = this.id + "_circle1"; 
         $circle1.setAttributeNS(null, "cx", `${this.p1.x}`);
         $circle1.setAttributeNS(null, "cy", `${this.p1.y}`);
-        $circle1.setAttributeNS(null, "r", `${7}`);
+        $circle1.setAttributeNS(null, "r", `${5}`);
         $circle1.setAttributeNS(null, "stroke", _color);
         _$svg.appendChild($circle1);
         let $circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         $circle2.id = this.id + "_circle2";
         $circle2.setAttributeNS(null, "cx", `${this.p2.x}`);
         $circle2.setAttributeNS(null, "cy", `${this.p2.y}`);
-        $circle2.setAttributeNS(null, "r", `${7}`);
+        $circle2.setAttributeNS(null, "r", `${5}`);
         $circle2.setAttributeNS(null, "stroke", _color);
         _$svg.appendChild($circle2);
     }
