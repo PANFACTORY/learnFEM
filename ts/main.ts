@@ -21,7 +21,7 @@ $svg.addEventListener("mousemove", (e) => {
             $svg.removeChild($tmpline);
         }
         Point1 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
-        $svg.appendChild(Line.draw(Point0, Point1, "gold", "linetmp"));
+        Line.draw($svg, Point0, Point1, "gold", "linetmp");
     }
 });
 $svg.addEventListener("mouseup", (e) => {
@@ -35,7 +35,7 @@ $svg.addEventListener("mouseup", (e) => {
         }
         const line = new Line(Point0, Point1);
         LineList.push(line)
-        $svg.appendChild(line.draw("black"));
+        line.draw($svg, "black");
         console.log(PointList);
         console.log(LineList);
     }
