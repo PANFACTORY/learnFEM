@@ -3,14 +3,13 @@
 
 let PointList : Point[] = [];
 let Point0 : Point, Point1 : Point;
-let IsPoint1New : boolean;
 let LineList : Line[] = [];
 
 const $svg = document.getElementById("svg");
 $svg.addEventListener("mousedown", (e) => {
     if (e.buttons === 1) {
-        Point0 = { x : e.clientX, y : e.clientY };
-        if (IsPointNew(Point0, PointList)) {
+        Point0 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
+        if (!Point0.shared) {
             PointList.push(Point0);
         }
     }
@@ -21,9 +20,8 @@ $svg.addEventListener("mousemove", (e) => {
         if ($tmpline) {
             $svg.removeChild($tmpline);
         }
-        Point1 = { x : e.clientX, y : e.clientY };
-        IsPoint1New = IsPointNew(Point1, PointList);
-        $svg.appendChild((new Line(Point0, Point1, "linetmp")).draw("gold"));
+        Point1 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
+        $svg.appendChild(Line.draw(Point0, Point1, "gold", "linetmp"));
     }
 });
 $svg.addEventListener("mouseup", (e) => {
@@ -32,11 +30,12 @@ $svg.addEventListener("mouseup", (e) => {
         if ($tmpline) {
             $svg.removeChild($tmpline);
         }
-        LineList.push(new Line(Point0, Point1))
-        $svg.appendChild(LineList[LineList.length - 1].draw("black"));
-        if (IsPoint1New) {
+        if (!Point1.shared) {
             PointList.push(Point1);
         }
+        const line = new Line(Point0, Point1);
+        LineList.push(line)
+        $svg.appendChild(line.draw("black"));
         console.log(PointList);
         console.log(LineList);
     }

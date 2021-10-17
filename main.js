@@ -1,16 +1,22 @@
+var Point = /** @class */ (function () {
+    function Point(_x, _y) {
+        this.x = _x;
+        this.y = _y;
+        this.shared = 0;
+    }
+    return Point;
+}());
 var IsPointSame = function (_p0, _p1) {
     return Math.pow(_p0.x - _p1.x, 2.0) + Math.pow(_p0.y - _p1.y, 2.0) < 50;
 };
-var IsPointNew = function (_point, _pointlist) {
-    var ispointnew = true;
+var MargePoint = function (_point, _pointlist) {
+    var point = _point;
     for (var i = 0; i < _pointlist.length; ++i) {
         if (IsPointSame(_point, _pointlist[i])) {
-            ispointnew = false;
-            _point.x = _pointlist[i].x;
-            _point.y = _pointlist[i].y;
+            point = _pointlist[i];
         }
     }
-    return ispointnew;
+    return point;
 };
 /// <reference path="point.ts">
 var Line = /** @class */ (function () {
@@ -18,42 +24,37 @@ var Line = /** @class */ (function () {
         var _this = this;
         if (_id === void 0) { _id = ""; }
         this.draw = function (_color) {
-            var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            $line.id = _this.id;
-            $line.setAttributeNS(null, "x1", "" + _this.p1.x);
-            $line.setAttributeNS(null, "y1", "" + _this.p1.y);
-            $line.setAttributeNS(null, "x2", "" + _this.p2.x);
-            $line.setAttributeNS(null, "y2", "" + _this.p2.y);
-            $line.setAttributeNS(null, "stroke", _color);
-            return $line;
+            return Line.draw(_this.p1, _this.p2, _color, _this.id);
         };
         this.p1 = _p1;
+        this.p1.shared++;
         this.p2 = _p2;
+        this.p2.shared++;
         this.id = _id ? _id : "line" + Line.count++;
     }
     Line.count = 0;
+    Line.draw = function (_p1, _p2, _color, _id) {
+        var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        $line.id = _id;
+        $line.setAttributeNS(null, "x1", "" + _p1.x);
+        $line.setAttributeNS(null, "y1", "" + _p1.y);
+        $line.setAttributeNS(null, "x2", "" + _p2.x);
+        $line.setAttributeNS(null, "y2", "" + _p2.y);
+        $line.setAttributeNS(null, "stroke", _color);
+        return $line;
+    };
     return Line;
 }());
-var GetSVGLine = function (_p1, _p2, _color) {
-    var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    $line.setAttributeNS(null, "x1", "" + _p1.x);
-    $line.setAttributeNS(null, "y1", "" + _p1.y);
-    $line.setAttributeNS(null, "x2", "" + _p2.x);
-    $line.setAttributeNS(null, "y2", "" + _p2.y);
-    $line.setAttributeNS(null, "stroke", _color);
-    return $line;
-};
 /// <reference path="point.ts">
 /// <reference path="line.ts">
 var PointList = [];
 var Point0, Point1;
-var IsPoint1New;
 var LineList = [];
 var $svg = document.getElementById("svg");
 $svg.addEventListener("mousedown", function (e) {
     if (e.buttons === 1) {
-        Point0 = { x: e.clientX, y: e.clientY };
-        if (IsPointNew(Point0, PointList)) {
+        Point0 = MargePoint(new Point(e.clientX, e.clientY), PointList);
+        if (!Point0.shared) {
             PointList.push(Point0);
         }
     }
@@ -64,9 +65,8 @@ $svg.addEventListener("mousemove", function (e) {
         if ($tmpline) {
             $svg.removeChild($tmpline);
         }
-        Point1 = { x: e.clientX, y: e.clientY };
-        IsPoint1New = IsPointNew(Point1, PointList);
-        $svg.appendChild((new Line(Point0, Point1, "linetmp")).draw("gold"));
+        Point1 = MargePoint(new Point(e.clientX, e.clientY), PointList);
+        $svg.appendChild(Line.draw(Point0, Point1, "gold", "linetmp"));
     }
 });
 $svg.addEventListener("mouseup", function (e) {
@@ -75,11 +75,12 @@ $svg.addEventListener("mouseup", function (e) {
         if ($tmpline) {
             $svg.removeChild($tmpline);
         }
-        LineList.push(new Line(Point0, Point1));
-        $svg.appendChild(LineList[LineList.length - 1].draw("black"));
-        if (IsPoint1New) {
+        if (!Point1.shared) {
             PointList.push(Point1);
         }
+        var line = new Line(Point0, Point1);
+        LineList.push(line);
+        $svg.appendChild(line.draw("black"));
         console.log(PointList);
         console.log(LineList);
     }
