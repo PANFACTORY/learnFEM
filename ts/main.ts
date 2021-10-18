@@ -4,12 +4,11 @@
 let PointList : Point[] = [];
 let Point0 : Point, Point1 : Point;
 let LineList : Line[] = [];
+let Mode : number = 0;
 
 const $svg = document.getElementById("svg");
-$svg.addEventListener("mousedown", (e) => {
-    if (e.buttons === 1) {
-        Point0 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
-    } else if (e.buttons === 4) {
+$svg.addEventListener("click", (e) => {
+    if (e.button === 0 && Mode === 1) {
         for (let i : number = LineList.length - 1; i >= 0; --i) {
             if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
                 LineList[i].Undraw($svg);
@@ -25,8 +24,13 @@ $svg.addEventListener("mousedown", (e) => {
         console.log(PointList, LineList);
     }
 });
+$svg.addEventListener("mousedown", (e) => {
+    if (e.buttons === 1 && Mode === 0) {
+        Point0 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
+    }
+});
 $svg.addEventListener("mousemove", (e) => {
-    if (e.buttons === 1) {
+    if (e.buttons === 1 && Mode === 0) {
         let $tmpline = document.getElementById("linetmp");
         if ($tmpline) {
             $svg.removeChild($tmpline);
@@ -36,7 +40,7 @@ $svg.addEventListener("mousemove", (e) => {
     }
 });
 $svg.addEventListener("mouseup", (e) => {
-    if (e.button === 0) {
+    if (e.button === 0 && Mode === 0) {
         let $tmpline = document.getElementById("linetmp");
         if ($tmpline) {
             $svg.removeChild($tmpline);
@@ -52,6 +56,14 @@ $svg.addEventListener("mouseup", (e) => {
             LineList.push(line)
             line.Draw($svg, "black");
             console.log(PointList, LineList);
+        }
+    }
+});
+$svg.addEventListener("mouseout", (e) => {
+    if (e.button === 0 && Mode === 0) {
+        let $tmpline = document.getElementById("linetmp");
+        if ($tmpline) {
+            $svg.removeChild($tmpline);
         }
     }
 });
