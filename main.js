@@ -1,14 +1,57 @@
 var Point = /** @class */ (function () {
-    function Point(_x, _y) {
+    function Point(_x, _y, _id) {
         var _this = this;
+        if (_id === void 0) { _id = ""; }
+        this.Dispose = function (_$svg) {
+            if (_this.isfixed) {
+                _$svg.removeChild(document.getElementById(_this.id + "_fix1"));
+                _$svg.removeChild(document.getElementById(_this.id + "_fix2"));
+                _this.isfixed = false;
+            }
+        };
         this.Distance = function (_p) {
             return Math.sqrt(Math.pow((_this.x - _p.x), 2) + Math.pow((_this.y - _p.y), 2));
+        };
+        this.Fix = function (_$svg) {
+            if (!_this.isfixed) {
+                var $triangle1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                $triangle1.id = _this.id + "_fix1";
+                $triangle1.setAttributeNS(null, "d", "M" + _this.x + " " + _this.y + " L" + (_this.x - 10) + " " + (_this.y + 7) + " L" + (_this.x - 10) + " " + (_this.y - 7) + " Z");
+                $triangle1.setAttributeNS(null, "fill", "blue");
+                _$svg.appendChild($triangle1);
+                var $triangle2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                $triangle2.id = _this.id + "_fix2";
+                $triangle2.setAttributeNS(null, "d", "M" + _this.x + " " + _this.y + " L" + (_this.x - 7) + " " + (_this.y + 10) + " L" + (_this.x + 7) + " " + (_this.y + 10) + " Z");
+                $triangle2.setAttributeNS(null, "fill", "blue");
+                _$svg.appendChild($triangle2);
+                _this.isfixed = true;
+            }
+            else {
+                _$svg.removeChild(document.getElementById(_this.id + "_fix1"));
+                _$svg.removeChild(document.getElementById(_this.id + "_fix2"));
+                _this.isfixed = false;
+            }
+        };
+        this.Force = function (_$svg, _p) {
+            if (!_this.isforced) {
+                var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                $line.id = _this.id + "_force";
+                $line.setAttributeNS(null, "x1", "" + _this.x);
+                $line.setAttributeNS(null, "y1", "" + _this.y);
+                $line.setAttributeNS(null, "x2", "" + _p.x);
+                $line.setAttributeNS(null, "y2", "" + _p.y);
+                $line.setAttributeNS(null, "stroke", "red");
+                _$svg.appendChild($line);
+                _this.isforced = true;
+            }
         };
         this.x = _x;
         this.y = _y;
         this.shared = 0;
         this.isfixed = false;
+        this.id = _id ? _id : "point" + Point.count++;
     }
+    Point.count = 0;
     return Point;
 }());
 var OverwritePoint = function (_point, _pointlist) {
@@ -94,32 +137,42 @@ var Line = /** @class */ (function () {
 var PointList = [];
 var Point0, Point1;
 var LineList = [];
-var Mode = 0;
+var $mode = document.getElementById("form_mode");
 var $svg = document.getElementById("svg");
-$svg.addEventListener("click", function (e) {
-    if (e.button === 0 && Mode === 1) {
-        for (var i = LineList.length - 1; i >= 0; --i) {
-            if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
-                LineList[i].Undraw($svg);
-                LineList[i].Dispose();
-                LineList.splice(i, 1);
-            }
-        }
-        for (var i = PointList.length - 1; i >= 0; --i) {
-            if (PointList[i].shared === 0) {
-                PointList.splice(i, 1);
-            }
-        }
-        console.log(PointList, LineList);
-    }
-});
 $svg.addEventListener("mousedown", function (e) {
-    if (e.buttons === 1 && Mode === 0) {
-        Point0 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
+    if (e.buttons === 1) {
+        Point0 = new Point(e.clientX, e.clientY);
+        if ($mode.elements["options"].value === "beam" || $mode.elements["options"].value === "load") {
+            Point0 = OverwritePoint(Point0, PointList);
+        }
+        else if ($mode.elements["options"].value === "fix") {
+            for (var i = PointList.length - 1; i >= 0; --i) {
+                if (PointList[i].Distance(Point0) < 10) {
+                    PointList[i].Fix($svg);
+                }
+            }
+            console.log(PointList, LineList);
+        }
+        else if ($mode.elements["options"].value === "delete") {
+            for (var i = LineList.length - 1; i >= 0; --i) {
+                if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
+                    LineList[i].Undraw($svg);
+                    LineList[i].Dispose();
+                    LineList.splice(i, 1);
+                }
+            }
+            for (var i = PointList.length - 1; i >= 0; --i) {
+                if (PointList[i].shared === 0) {
+                    PointList[i].Dispose($svg);
+                    PointList.splice(i, 1);
+                }
+            }
+            console.log(PointList, LineList);
+        }
     }
 });
 $svg.addEventListener("mousemove", function (e) {
-    if (e.buttons === 1 && Mode === 0) {
+    if (e.buttons === 1 && $mode.elements["options"].value === "beam") {
         var $tmpline = document.getElementById("linetmp");
         if ($tmpline) {
             $svg.removeChild($tmpline);
@@ -127,9 +180,17 @@ $svg.addEventListener("mousemove", function (e) {
         Point1 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
         Line.Draw($svg, Point0, Point1, "gold", "linetmp");
     }
+    else if (e.buttons === 1 && $mode.elements["options"].value === "load" && Point0.shared) {
+        var $tmpline = document.getElementById("linetmp");
+        if ($tmpline) {
+            $svg.removeChild($tmpline);
+        }
+        Point1 = new Point(e.clientX, e.clientY);
+        Line.Draw($svg, Point0, Point1, "red", "linetmp");
+    }
 });
 $svg.addEventListener("mouseup", function (e) {
-    if (e.button === 0 && Mode === 0) {
+    if (e.button === 0 && $mode.elements["options"].value === "beam") {
         var $tmpline = document.getElementById("linetmp");
         if ($tmpline) {
             $svg.removeChild($tmpline);
@@ -147,9 +208,18 @@ $svg.addEventListener("mouseup", function (e) {
             console.log(PointList, LineList);
         }
     }
+    else if (e.button === 0 && $mode.elements["options"].value === "load") {
+        var $tmpline = document.getElementById("linetmp");
+        if ($tmpline) {
+            $svg.removeChild($tmpline);
+        }
+        if (Point0.Distance(Point1) > 20) {
+            Point0.Force($svg, Point1);
+        }
+    }
 });
 $svg.addEventListener("mouseout", function (e) {
-    if (e.button === 0 && Mode === 0) {
+    if (e.button === 0 && $mode.elements["options"].value === "beam") {
         var $tmpline = document.getElementById("linetmp");
         if ($tmpline) {
             $svg.removeChild($tmpline);

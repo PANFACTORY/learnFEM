@@ -15,8 +15,33 @@
                 <rect x="0" y="0" width="480" height="480" stroke="black" fill="none" stroke-width="1" />
             </svg>
         </div>
+
+        <div class="row">
+            <form id="form_mode">
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-outline-dark active">
+                        <input id="btn_beam" type="radio" name="options" id="btn_beam" autocomplete="off" value="beam" checked>Beam
+                    </label>
+                    <label class="btn btn-outline-dark">
+                        <input id="btn_fix" type="radio" name="options" id="btn_fix" autocomplete="off" value="fix">Fix
+                    </label>
+                    <label class="btn btn-outline-dark">
+                        <input id="btn_load" type="radio" name="options" id="btn_load" autocomplete="off" value="load">Load
+                    </label>
+                    <label class="btn btn-outline-success">
+                        <input id="btn_analyse" type="radio" name="options" id="btn_analyse" autocomplete="off" value="analyse">Analyse
+                    </label>
+                    <label class="btn btn-outline-danger">
+                        <input id="btn_delete" type="radio" name="options" id="btn_delete" autocomplete="off" value="delete">Delete
+                    </label>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 
 <script type="text/javascript" src="main.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 </html>
