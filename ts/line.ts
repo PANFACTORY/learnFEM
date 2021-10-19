@@ -72,5 +72,6 @@ class Line {
         $line.setAttributeNS(null, "y2", `${_p2.y}`);
         $line.setAttributeNS(null, "stroke", _color);
         _$svg.appendChild($line);
+        return $line;
     }
 }
