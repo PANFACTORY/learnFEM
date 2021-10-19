@@ -1,7 +1,6 @@
 var Point = /** @class */ (function () {
-    function Point(_x, _y, _id) {
+    function Point(_x, _y) {
         var _this = this;
-        if (_id === void 0) { _id = ""; }
         this.Dispose = function (_$svg) {
             if (_this.isfixed) {
                 _$svg.removeChild(_this.$fix);
@@ -81,11 +80,10 @@ var Point = /** @class */ (function () {
         this.shared = 0;
         this.isfixed = false;
         this.isforced = false;
-        this.id = _id ? _id : "point" + Point.count++;
+        this.id = -1;
         this.$fix = undefined;
         this.$force = undefined;
     }
-    Point.count = 0;
     return Point;
 }());
 var OverwritePoint = function (_point, _pointlist) {

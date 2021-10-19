@@ -4,18 +4,17 @@ class Point {
     shared : number;
     isfixed : boolean;
     isforced : boolean;
-    id : string;
-    static count : number = 0;
+    id : number;
     private $fix : SVGElement;
     private $force : SVGElement;
     
-    constructor(_x : number, _y : number, _id : string = "") {
+    constructor(_x : number, _y : number) {
         this.x = _x;
         this.y = _y;
         this.shared = 0;
         this.isfixed = false;
         this.isforced = false;
-        this.id = _id ? _id : `point${Point.count++}`;
+        this.id = -1;
         this.$fix = undefined;
         this.$force = undefined;
     }
