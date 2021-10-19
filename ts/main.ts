@@ -28,8 +28,7 @@ $svg.addEventListener("mousedown", (e) => {
             case "delete":
                 for (let i : number = LineList.length - 1; i >= 0; --i) {
                     if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
-                        LineList[i].Undraw($svg);
-                        LineList[i].Dispose();
+                        LineList[i].Dispose($svg);
                         LineList.splice(i, 1);
                     }
                 }

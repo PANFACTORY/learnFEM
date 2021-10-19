@@ -5,6 +5,7 @@ class Line {
     p2 : Point;
     id : string;
     static count : number = 0;
+    private $line : SVGElement;
 
     constructor(_p1 : Point, _p2 : Point, _id : string = "") {
         this.p1 = _p1;
@@ -12,44 +13,33 @@ class Line {
         this.p2 = _p2;
         this.p2.shared++;
         this.id = _id ? _id : `line${Line.count++}`;
+        this.$line = undefined;
     }
 
-    Dispose = () => {
+    Dispose = (_$svg) => {
         this.p1.shared--;
         this.p2.shared--;
+        if (this.$line) {
+            _$svg.removeChild(this.$line);
+        }
     }
 
     Draw = (_$svg, _color : string) => {
-        Line.Draw(_$svg, this.p1, this.p2, _color, this.id);
-        let $circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        $circle1.id = this.id + "_circle1"; 
+        this.$line = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        Line.Draw(this.$line, this.p1, this.p2, _color, this.id);
+        const $circle1 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         $circle1.setAttributeNS(null, "cx", `${this.p1.x}`);
         $circle1.setAttributeNS(null, "cy", `${this.p1.y}`);
         $circle1.setAttributeNS(null, "r", `${5}`);
         $circle1.setAttributeNS(null, "stroke", _color);
-        _$svg.appendChild($circle1);
-        let $circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        $circle2.id = this.id + "_circle2";
+        this.$line.appendChild($circle1);
+        const $circle2 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         $circle2.setAttributeNS(null, "cx", `${this.p2.x}`);
         $circle2.setAttributeNS(null, "cy", `${this.p2.y}`);
         $circle2.setAttributeNS(null, "r", `${5}`);
         $circle2.setAttributeNS(null, "stroke", _color);
-        _$svg.appendChild($circle2);
-    }
-
-    Undraw = (_$svg) => {
-        let $line = document.getElementById(this.id);
-        if ($line) {
-            _$svg.removeChild($line);
-        }
-        let $circle1 = document.getElementById(this.id + "_circle1");
-        if ($circle1) {
-            _$svg.removeChild($circle1);
-        }
-        let $circle2 = document.getElementById(this.id + "_circle2");
-        if ($circle2) {
-            _$svg.removeChild($circle2);
-        }
+        this.$line.appendChild($circle2);
+        _$svg.appendChild(this.$line);
     }
 
     IsHit = (_p : Point) : boolean => {

@@ -102,40 +102,29 @@ var Line = /** @class */ (function () {
     function Line(_p1, _p2, _id) {
         var _this = this;
         if (_id === void 0) { _id = ""; }
-        this.Dispose = function () {
+        this.Dispose = function (_$svg) {
             _this.p1.shared--;
             _this.p2.shared--;
+            if (_this.$line) {
+                _$svg.removeChild(_this.$line);
+            }
         };
         this.Draw = function (_$svg, _color) {
-            Line.Draw(_$svg, _this.p1, _this.p2, _color, _this.id);
+            _this.$line = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            Line.Draw(_this.$line, _this.p1, _this.p2, _color, _this.id);
             var $circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            $circle1.id = _this.id + "_circle1";
             $circle1.setAttributeNS(null, "cx", "" + _this.p1.x);
             $circle1.setAttributeNS(null, "cy", "" + _this.p1.y);
             $circle1.setAttributeNS(null, "r", "" + 5);
             $circle1.setAttributeNS(null, "stroke", _color);
-            _$svg.appendChild($circle1);
+            _this.$line.appendChild($circle1);
             var $circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            $circle2.id = _this.id + "_circle2";
             $circle2.setAttributeNS(null, "cx", "" + _this.p2.x);
             $circle2.setAttributeNS(null, "cy", "" + _this.p2.y);
             $circle2.setAttributeNS(null, "r", "" + 5);
             $circle2.setAttributeNS(null, "stroke", _color);
-            _$svg.appendChild($circle2);
-        };
-        this.Undraw = function (_$svg) {
-            var $line = document.getElementById(_this.id);
-            if ($line) {
-                _$svg.removeChild($line);
-            }
-            var $circle1 = document.getElementById(_this.id + "_circle1");
-            if ($circle1) {
-                _$svg.removeChild($circle1);
-            }
-            var $circle2 = document.getElementById(_this.id + "_circle2");
-            if ($circle2) {
-                _$svg.removeChild($circle2);
-            }
+            _this.$line.appendChild($circle2);
+            _$svg.appendChild(_this.$line);
         };
         this.IsHit = function (_p) {
             var a = _this.p2.y - _this.p1.y;
@@ -152,6 +141,7 @@ var Line = /** @class */ (function () {
         this.p2 = _p2;
         this.p2.shared++;
         this.id = _id ? _id : "line" + Line.count++;
+        this.$line = undefined;
     }
     Line.count = 0;
     Line.Draw = function (_$svg, _p1, _p2, _color, _id) {
@@ -195,8 +185,7 @@ $svg.addEventListener("mousedown", function (e) {
             case "delete":
                 for (var i = LineList.length - 1; i >= 0; --i) {
                     if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
-                        LineList[i].Undraw($svg);
-                        LineList[i].Dispose();
+                        LineList[i].Dispose($svg);
                         LineList.splice(i, 1);
                     }
                 }
