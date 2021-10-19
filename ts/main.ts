@@ -45,7 +45,7 @@ $svg.addEventListener("mousemove", (e) => {
         }
         Point1 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
         Line.Draw($svg, Point0, Point1, "gold", "linetmp");
-    } else if (e.buttons === 1 && $mode.elements["options"].value === "load" && Point0.shared) {
+    } else if (e.buttons === 1 && $mode.elements["options"].value === "load" && Point0.shared && !Point0.isforced) {
         let $tmpline = document.getElementById("linetmp");
         if ($tmpline) {
             $svg.removeChild($tmpline);
@@ -72,7 +72,7 @@ $svg.addEventListener("mouseup", (e) => {
             line.Draw($svg, "black");
             console.log(PointList, LineList);
         }
-    } else if (e.button === 0 && $mode.elements["options"].value === "load") {
+    } else if (e.button === 0 && $mode.elements["options"].value === "load" && Point0.shared) {
         let $tmpline = document.getElementById("linetmp");
         if ($tmpline) {
             $svg.removeChild($tmpline);
@@ -83,7 +83,7 @@ $svg.addEventListener("mouseup", (e) => {
     }
 });
 $svg.addEventListener("mouseout", (e) => {
-    if (e.button === 0 && $mode.elements["options"].value === "beam") {
+    if (e.button === 0 && ($mode.elements["options"].value === "beam" || $mode.elements["options"].value === "load")) {
         let $tmpline = document.getElementById("linetmp");
         if ($tmpline) {
             $svg.removeChild($tmpline);

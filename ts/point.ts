@@ -12,6 +12,7 @@ class Point {
         this.y = _y;
         this.shared = 0;
         this.isfixed = false;
+        this.isforced = false;
         this.id = _id ? _id : `point${Point.count++}`;
     }
 
@@ -20,6 +21,11 @@ class Point {
             _$svg.removeChild(document.getElementById(this.id + "_fix1"));
             _$svg.removeChild(document.getElementById(this.id + "_fix2"));
             this.isfixed = false;
+        } else if (this.isforced) {
+            _$svg.removeChild(document.getElementById(this.id + "_force1"));
+            _$svg.removeChild(document.getElementById(this.id + "_force2"));
+            _$svg.removeChild(document.getElementById(this.id + "_force3"));
+            this.isforced = false;
         }
     }
 
@@ -40,6 +46,12 @@ class Point {
             $triangle2.setAttributeNS(null, "fill", "blue");
             _$svg.appendChild($triangle2);
             this.isfixed = true;
+            if (this.isforced) {
+                _$svg.removeChild(document.getElementById(this.id + "_force1"));
+                _$svg.removeChild(document.getElementById(this.id + "_force2"));
+                _$svg.removeChild(document.getElementById(this.id + "_force3"));
+                this.isforced = false; 
+            }
         } else {
             _$svg.removeChild(document.getElementById(this.id + "_fix1"));
             _$svg.removeChild(document.getElementById(this.id + "_fix2"));
@@ -49,15 +61,43 @@ class Point {
 
     Force = (_$svg, _p : Point) => {
         if (!this.isforced) {
-            let $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            $line.id = this.id + "_force";
-            $line.setAttributeNS(null, "x1", `${this.x}`);
-            $line.setAttributeNS(null, "y1", `${this.y}`);
-            $line.setAttributeNS(null, "x2", `${_p.x}`);
-            $line.setAttributeNS(null, "y2", `${_p.y}`);
-            $line.setAttributeNS(null, "stroke", "red");
-            _$svg.appendChild($line);
+            let $line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            $line1.id = this.id + "_force1";
+            $line1.setAttributeNS(null, "x1", `${this.x}`);
+            $line1.setAttributeNS(null, "y1", `${this.y}`);
+            $line1.setAttributeNS(null, "x2", `${_p.x}`);
+            $line1.setAttributeNS(null, "y2", `${_p.y}`);
+            $line1.setAttributeNS(null, "stroke", "red");
+            _$svg.appendChild($line1);
+            let d : number = Math.sqrt((_p.x - this.x)**2 + (_p.y - this.y)**2);
+            let c : number = (_p.x - this.x)/d, s : number = -(_p.y - this.y)/d;
+            let $line2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            $line2.id = this.id + "_force2";
+            $line2.setAttributeNS(null, "x1", `${_p.x}`);
+            $line2.setAttributeNS(null, "y1", `${_p.y}`);
+            $line2.setAttributeNS(null, "x2", `${_p.x + 10*(-c + 0.5*s)}`);
+            $line2.setAttributeNS(null, "y2", `${_p.y - 10*(-s - 0.5*c)}`);
+            $line2.setAttributeNS(null, "stroke", "red");
+            _$svg.appendChild($line2);
+            let $line3 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            $line3.id = this.id + "_force3";
+            $line3.setAttributeNS(null, "x1", `${_p.x}`);
+            $line3.setAttributeNS(null, "y1", `${_p.y}`);
+            $line3.setAttributeNS(null, "x2", `${_p.x + 10*(-c - 0.5*s)}`);
+            $line3.setAttributeNS(null, "y2", `${_p.y - 10*(-s + 0.5*c)}`);
+            $line3.setAttributeNS(null, "stroke", "red");
+            _$svg.appendChild($line3);
             this.isforced = true;
+            if (this.isfixed) {
+                _$svg.removeChild(document.getElementById(this.id + "_fix1"));
+                _$svg.removeChild(document.getElementById(this.id + "_fix2"));
+                this.isfixed = false;
+            }
+        } else {
+            _$svg.removeChild(document.getElementById(this.id + "_force1"));
+            _$svg.removeChild(document.getElementById(this.id + "_force2"));
+            _$svg.removeChild(document.getElementById(this.id + "_force3"));
+            this.isforced = false;
         }
     }
 }
