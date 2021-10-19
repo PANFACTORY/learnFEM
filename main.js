@@ -4,14 +4,11 @@ var Point = /** @class */ (function () {
         if (_id === void 0) { _id = ""; }
         this.Dispose = function (_$svg) {
             if (_this.isfixed) {
-                _$svg.removeChild(document.getElementById(_this.id + "_fix1"));
-                _$svg.removeChild(document.getElementById(_this.id + "_fix2"));
+                _$svg.removeChild(_this.$fix);
                 _this.isfixed = false;
             }
             else if (_this.isforced) {
-                _$svg.removeChild(document.getElementById(_this.id + "_force1"));
-                _$svg.removeChild(document.getElementById(_this.id + "_force2"));
-                _$svg.removeChild(document.getElementById(_this.id + "_force3"));
+                _$svg.removeChild(_this.$force);
                 _this.isforced = false;
             }
         };
@@ -20,69 +17,62 @@ var Point = /** @class */ (function () {
         };
         this.Fix = function (_$svg) {
             if (!_this.isfixed) {
+                _this.$fix = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 var $triangle1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                $triangle1.id = _this.id + "_fix1";
                 $triangle1.setAttributeNS(null, "d", "M" + _this.x + " " + _this.y + " L" + (_this.x - 10) + " " + (_this.y + 7) + " L" + (_this.x - 10) + " " + (_this.y - 7) + " Z");
                 $triangle1.setAttributeNS(null, "fill", "blue");
-                _$svg.appendChild($triangle1);
+                _this.$fix.appendChild($triangle1);
                 var $triangle2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                $triangle2.id = _this.id + "_fix2";
                 $triangle2.setAttributeNS(null, "d", "M" + _this.x + " " + _this.y + " L" + (_this.x - 7) + " " + (_this.y + 10) + " L" + (_this.x + 7) + " " + (_this.y + 10) + " Z");
                 $triangle2.setAttributeNS(null, "fill", "blue");
-                _$svg.appendChild($triangle2);
+                _this.$fix.appendChild($triangle2);
+                _$svg.appendChild(_this.$fix);
                 _this.isfixed = true;
                 if (_this.isforced) {
-                    _$svg.removeChild(document.getElementById(_this.id + "_force1"));
-                    _$svg.removeChild(document.getElementById(_this.id + "_force2"));
-                    _$svg.removeChild(document.getElementById(_this.id + "_force3"));
+                    _$svg.removeChild(_this.$force);
                     _this.isforced = false;
                 }
             }
             else {
-                _$svg.removeChild(document.getElementById(_this.id + "_fix1"));
-                _$svg.removeChild(document.getElementById(_this.id + "_fix2"));
+                _$svg.removeChild(_this.$fix);
                 _this.isfixed = false;
             }
         };
         this.Force = function (_$svg, _p) {
             if (!_this.isforced) {
+                _this.$force = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 var $line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                $line1.id = _this.id + "_force1";
                 $line1.setAttributeNS(null, "x1", "" + _this.x);
                 $line1.setAttributeNS(null, "y1", "" + _this.y);
                 $line1.setAttributeNS(null, "x2", "" + _p.x);
                 $line1.setAttributeNS(null, "y2", "" + _p.y);
                 $line1.setAttributeNS(null, "stroke", "red");
-                _$svg.appendChild($line1);
+                _this.$force.appendChild($line1);
                 var d = Math.sqrt(Math.pow((_p.x - _this.x), 2) + Math.pow((_p.y - _this.y), 2));
                 var c = (_p.x - _this.x) / d, s = -(_p.y - _this.y) / d;
                 var $line2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                $line2.id = _this.id + "_force2";
                 $line2.setAttributeNS(null, "x1", "" + _p.x);
                 $line2.setAttributeNS(null, "y1", "" + _p.y);
                 $line2.setAttributeNS(null, "x2", "" + (_p.x + 10 * (-c + 0.5 * s)));
                 $line2.setAttributeNS(null, "y2", "" + (_p.y - 10 * (-s - 0.5 * c)));
                 $line2.setAttributeNS(null, "stroke", "red");
-                _$svg.appendChild($line2);
+                _this.$force.appendChild($line2);
                 var $line3 = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                $line3.id = _this.id + "_force3";
                 $line3.setAttributeNS(null, "x1", "" + _p.x);
                 $line3.setAttributeNS(null, "y1", "" + _p.y);
                 $line3.setAttributeNS(null, "x2", "" + (_p.x + 10 * (-c - 0.5 * s)));
                 $line3.setAttributeNS(null, "y2", "" + (_p.y - 10 * (-s + 0.5 * c)));
                 $line3.setAttributeNS(null, "stroke", "red");
-                _$svg.appendChild($line3);
+                _this.$force.appendChild($line3);
+                _$svg.appendChild(_this.$force);
                 _this.isforced = true;
                 if (_this.isfixed) {
-                    _$svg.removeChild(document.getElementById(_this.id + "_fix1"));
-                    _$svg.removeChild(document.getElementById(_this.id + "_fix2"));
+                    _$svg.removeChild(_this.$fix);
                     _this.isfixed = false;
                 }
             }
             else {
-                _$svg.removeChild(document.getElementById(_this.id + "_force1"));
-                _$svg.removeChild(document.getElementById(_this.id + "_force2"));
-                _$svg.removeChild(document.getElementById(_this.id + "_force3"));
+                _$svg.removeChild(_this.$force);
                 _this.isforced = false;
             }
         };
@@ -92,6 +82,8 @@ var Point = /** @class */ (function () {
         this.isfixed = false;
         this.isforced = false;
         this.id = _id ? _id : "point" + Point.count++;
+        this.$fix = undefined;
+        this.$force = undefined;
     }
     Point.count = 0;
     return Point;
