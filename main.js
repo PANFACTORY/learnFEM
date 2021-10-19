@@ -160,10 +160,14 @@ var Line = /** @class */ (function () {
 var PointList = [];
 var Point0, Point1;
 var LineList = [];
-var $tmpline = undefined;
-var $mode = document.getElementById("form_mode");
 var Mode = "beam";
 var $svg = document.getElementById("svg");
+var $tmpline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+$tmpline.setAttributeNS(null, "stroke", "black");
+$tmpline.setAttributeNS(null, "stroke-dasharray", "" + 4);
+$tmpline.setAttributeNS(null, "stroke-opacity", "" + 1.0);
+$svg.appendChild($tmpline);
+var $mode = document.getElementById("form_mode");
 $svg.addEventListener("mousedown", function (e) {
     Mode = $mode.elements["options"].value;
     if (e.buttons === 1) {
@@ -172,6 +176,9 @@ $svg.addEventListener("mousedown", function (e) {
             case "beam":
             case "load":
                 Point0 = OverwritePoint(Point0, PointList);
+                $tmpline.setAttributeNS(null, "x1", "" + Point0.x);
+                $tmpline.setAttributeNS(null, "y1", "" + Point0.y);
+                $tmpline.setAttributeNS(null, "stroke-opacity", "" + 1.0);
                 break;
             case "fix":
                 for (var i = PointList.length - 1; i >= 0; --i) {
@@ -199,19 +206,14 @@ $svg.addEventListener("mousedown", function (e) {
 });
 $svg.addEventListener("mousemove", function (e) {
     if (e.buttons === 1 && (Mode === "beam" || (Mode === "load" && Point0.shared && !Point0.isforced))) {
-        if ($tmpline) {
-            $svg.removeChild($tmpline);
-        }
         Point1 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
-        $tmpline = Line.Draw($svg, Point0, Point1, "gold", "linetmp");
+        $tmpline.setAttributeNS(null, "x2", "" + Point1.x);
+        $tmpline.setAttributeNS(null, "y2", "" + Point1.y);
     }
 });
 $svg.addEventListener("mouseup", function (e) {
     if (e.button === 0 && (Mode === "beam" || (Mode === "load" && Point0.shared))) {
-        if ($tmpline) {
-            $svg.removeChild($tmpline);
-            $tmpline = undefined;
-        }
+        $tmpline.setAttributeNS(null, "stroke-opacity", "" + 0.0);
         if (Point0.Distance(Point1) > 20) {
             switch (Mode) {
                 case "beam":
@@ -235,9 +237,11 @@ $svg.addEventListener("mouseup", function (e) {
 });
 $svg.addEventListener("mouseout", function (e) {
     if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
-        if ($tmpline) {
-            $svg.removeChild($tmpline);
-            $tmpline = undefined;
-        }
+        $tmpline.setAttributeNS(null, "stroke-opacity", "" + 0.0);
+    }
+});
+$svg.addEventListener("mouseover", function (e) {
+    if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
+        $tmpline.setAttributeNS(null, "stroke-opacity", "" + 1.0);
     }
 });
