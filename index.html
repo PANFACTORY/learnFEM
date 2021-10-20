@@ -14,6 +14,10 @@
             <svg id="svg" width="480" height="480">
                 <rect x="0" y="0" width="480" height="480" stroke="black" fill="none" stroke-width="1" />
                 <line id="guide" x1="0" y1="0" x2="0" y2="0" stroke="black" stroke-dasharray="4" stroke-opacity="0" />
+                <g id="svg_model"/>
+                <g id="svg_fix"/>
+                <g id="svg_force"/>
+                <g id="svg_result"/>
             </svg>
         </div>
 
@@ -21,22 +25,21 @@
             <form id="form_mode">
                 <div class="btn-group btn-group-toggle" data-toggle="buttons">
                     <label class="btn btn-outline-dark active">
-                        <input id="btn_beam" type="radio" name="options" id="btn_beam" autocomplete="off" value="beam" checked>Beam
+                        <input id="btn_beam" type="radio" name="options" autocomplete="off" value="beam" checked>Beam
                     </label>
                     <label class="btn btn-outline-dark">
-                        <input id="btn_fix" type="radio" name="options" id="btn_fix" autocomplete="off" value="fix">Fix
+                        <input id="btn_fix" type="radio" name="options" autocomplete="off" value="fix">Fix
                     </label>
                     <label class="btn btn-outline-dark">
-                        <input id="btn_load" type="radio" name="options" id="btn_load" autocomplete="off" value="load">Load
-                    </label>
-                    <label class="btn btn-outline-success">
-                        <input id="btn_analyse" type="radio" name="options" id="btn_analyse" autocomplete="off" value="analyse">Analyse
+                        <input id="btn_load" type="radio" name="options" autocomplete="off" value="load">Load
                     </label>
                     <label class="btn btn-outline-danger">
-                        <input id="btn_delete" type="radio" name="options" id="btn_delete" autocomplete="off" value="delete">Delete
+                        <input id="btn_delete" type="radio" name="options" autocomplete="off" value="delete">Delete
                     </label>
                 </div>
             </form>
+
+            <button id="btn_analyse" type="button" class="btn btn-outline-success">Analyse</button>
         </div>
     </div>
 </body>

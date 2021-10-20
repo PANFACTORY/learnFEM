@@ -1,5 +1,6 @@
 /// <reference path="point.ts">
 /// <reference path="line.ts">
+/// <reference path="solver.ts">
 
 let PointList : Point[] = [];
 let Point0 : Point, Point1 : Point;
@@ -8,8 +9,8 @@ let Mode : string = "beam";
 
 const $svg = document.getElementById("svg");
 const $guide = document.getElementById("guide");
-const $mode : HTMLFormElement = <HTMLFormElement>document.getElementById("form_mode");
 
+const $mode : HTMLFormElement = <HTMLFormElement>document.getElementById("form_mode");
 $svg.addEventListener("mousedown", (e) => {
     Mode = $mode.elements["options"].value;
     if (e.buttons === 1) {
@@ -87,5 +88,13 @@ $svg.addEventListener("mouseleave", (e) => {
 $svg.addEventListener("mouseenter", (e) => {
     if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
         $guide.setAttributeNS(null, "stroke-opacity", `${1.0}`);
+    }
+});
+
+const $btn_analyse = document.getElementById("btn_analyse");
+$btn_analyse.addEventListener("click", (e) => {
+    Solve(PointList, LineList);
+    for (let i : number = 0; i < LineList.length; ++i) {
+        LineList[i].DrawDisplacement($svg);
     }
 });

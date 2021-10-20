@@ -4,6 +4,10 @@ class Point {
     shared : number;
     isfixed : boolean;
     isforced : boolean;
+    forcex : number;
+    forcey : number;
+    ux : number;
+    uy : number;
     id : number;
     private $fix : SVGElement;
     private $force : SVGElement;
@@ -14,6 +18,10 @@ class Point {
         this.shared = 0;
         this.isfixed = false;
         this.isforced = false;
+        this.forcex = 0;
+        this.forcey = 0;
+        this.ux = 0;
+        this.uy = 0;
         this.id = -1;
         this.$fix = undefined;
         this.$force = undefined;
@@ -49,6 +57,8 @@ class Point {
             if (this.isforced) {
                 _$svg.removeChild(this.$force);
                 this.isforced = false; 
+                this.forcex = 0;
+                this.forcey = 0;
             }
         } else {
             _$svg.removeChild(this.$fix);
@@ -67,23 +77,25 @@ class Point {
             $line1.setAttributeNS(null, "stroke", "red");
             this.$force.appendChild($line1);
             let d : number = Math.sqrt((_p.x - this.x)**2 + (_p.y - this.y)**2);
-            let c : number = (_p.x - this.x)/d, s : number = -(_p.y - this.y)/d;
+            let c : number = (_p.x - this.x)/d, s : number = (_p.y - this.y)/d;
             const $line2 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
             $line2.setAttributeNS(null, "x1", `${_p.x}`);
             $line2.setAttributeNS(null, "y1", `${_p.y}`);
             $line2.setAttributeNS(null, "x2", `${_p.x + 10*(-c + 0.5*s)}`);
-            $line2.setAttributeNS(null, "y2", `${_p.y - 10*(-s - 0.5*c)}`);
+            $line2.setAttributeNS(null, "y2", `${_p.y + 10*(-s - 0.5*c)}`);
             $line2.setAttributeNS(null, "stroke", "red");
             this.$force.appendChild($line2);
             const $line3 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
             $line3.setAttributeNS(null, "x1", `${_p.x}`);
             $line3.setAttributeNS(null, "y1", `${_p.y}`);
             $line3.setAttributeNS(null, "x2", `${_p.x + 10*(-c - 0.5*s)}`);
-            $line3.setAttributeNS(null, "y2", `${_p.y - 10*(-s + 0.5*c)}`);
+            $line3.setAttributeNS(null, "y2", `${_p.y + 10*(-s + 0.5*c)}`);
             $line3.setAttributeNS(null, "stroke", "red");
             this.$force.appendChild($line3);
             _$svg.appendChild(this.$force);
             this.isforced = true;
+            this.forcex = _p.x - this.x;
+            this.forcey = _p.y - this.y;
             if (this.isfixed) {
                 _$svg.removeChild(this.$fix);
                 this.isfixed = false;
@@ -91,6 +103,8 @@ class Point {
         } else {
             _$svg.removeChild(this.$force);
             this.isforced = false;
+            this.forcex = 0;
+            this.forcey = 0;
         }
     }
 }
