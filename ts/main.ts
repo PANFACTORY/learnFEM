@@ -35,18 +35,24 @@ $svg.addEventListener("mousedown", (e) => {
                 }
                 break;
             case "delete":
+                let isdeleted : boolean = false;
                 for (let i : number = LineList.length - 1; i >= 0; --i) {
                     if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
                         LineList[i].Dispose($svg_model, $svg_result);
                         LineList.splice(i, 1);
+                        isdeleted = true;
                     }
                 }
-                for (let i : number = PointList.length - 1; i >= 0; --i) {
-                    if(PointList[i].shared === 0) {
-                        PointList[i].Dispose($svg_bc);
-                        PointList.splice(i, 1);
+                if (isdeleted) {
+                    for (let i : number = PointList.length - 1; i >= 0; --i) {
+                        if(PointList[i].shared === 0) {
+                            PointList[i].Dispose($svg_bc);
+                            PointList.splice(i, 1);
+                        }
                     }
+                    $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
                 }
+                
                 break;
         }
     }
@@ -99,4 +105,5 @@ $btn_analyse.addEventListener("click", (e) => {
     for (let i : number = 0; i < LineList.length; ++i) {
         LineList[i].DrawDisplacement($svg_result, 30);
     }
+    $svg_result.setAttributeNS(null, "opacity", `${1.0}`);
 });

@@ -394,17 +394,22 @@ $svg.addEventListener("mousedown", function (e) {
                 }
                 break;
             case "delete":
+                var isdeleted = false;
                 for (var i = LineList.length - 1; i >= 0; --i) {
                     if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
                         LineList[i].Dispose($svg_model, $svg_result);
                         LineList.splice(i, 1);
+                        isdeleted = true;
                     }
                 }
-                for (var i = PointList.length - 1; i >= 0; --i) {
-                    if (PointList[i].shared === 0) {
-                        PointList[i].Dispose($svg_bc);
-                        PointList.splice(i, 1);
+                if (isdeleted) {
+                    for (var i = PointList.length - 1; i >= 0; --i) {
+                        if (PointList[i].shared === 0) {
+                            PointList[i].Dispose($svg_bc);
+                            PointList.splice(i, 1);
+                        }
                     }
+                    $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
                 }
                 break;
         }
@@ -457,4 +462,5 @@ $btn_analyse.addEventListener("click", function (e) {
     for (var i = 0; i < LineList.length; ++i) {
         LineList[i].DrawDisplacement($svg_result, 30);
     }
+    $svg_result.setAttributeNS(null, "opacity", "" + 1.0);
 });
