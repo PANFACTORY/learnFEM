@@ -24,20 +24,26 @@ class Line {
         }
     }
 
-    Draw = (_$svg, _color : string) => {
+    Draw = (_$svg) => {
         this.$line = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        Line.Draw(this.$line, this.p1, this.p2, _color, this.id);
+        const $line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        $line1.setAttributeNS(null, "x1", `${this.p1.x}`);
+        $line1.setAttributeNS(null, "y1", `${this.p1.y}`);
+        $line1.setAttributeNS(null, "x2", `${this.p2.x}`);
+        $line1.setAttributeNS(null, "y2", `${this.p2.y}`);
+        $line1.setAttributeNS(null, "stroke", "black");
+        this.$line.appendChild($line1);
         const $circle1 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         $circle1.setAttributeNS(null, "cx", `${this.p1.x}`);
         $circle1.setAttributeNS(null, "cy", `${this.p1.y}`);
         $circle1.setAttributeNS(null, "r", `${5}`);
-        $circle1.setAttributeNS(null, "stroke", _color);
+        $circle1.setAttributeNS(null, "stroke", "black");
         this.$line.appendChild($circle1);
         const $circle2 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         $circle2.setAttributeNS(null, "cx", `${this.p2.x}`);
         $circle2.setAttributeNS(null, "cy", `${this.p2.y}`);
         $circle2.setAttributeNS(null, "r", `${5}`);
-        $circle2.setAttributeNS(null, "stroke", _color);
+        $circle2.setAttributeNS(null, "stroke", "black");
         this.$line.appendChild($circle2);
         _$svg.appendChild(this.$line);
     }
@@ -51,17 +57,5 @@ class Line {
         var d2 = this.p2.Distance(_p);
         var d3 = this.p1.Distance(this.p2);
         return d0 < 5 && d1 < d3 + 5 && d2 < d3 + 5;
-    }
-
-    static Draw = (_$svg, _p1 : Point, _p2 : Point, _color : string, _id : string) => {
-        let $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        $line.id = _id;
-        $line.setAttributeNS(null, "x1", `${_p1.x}`);
-        $line.setAttributeNS(null, "y1", `${_p1.y}`);
-        $line.setAttributeNS(null, "x2", `${_p2.x}`);
-        $line.setAttributeNS(null, "y2", `${_p2.y}`);
-        $line.setAttributeNS(null, "stroke", _color);
-        _$svg.appendChild($line);
-        return $line;
     }
 }

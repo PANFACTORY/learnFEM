@@ -107,20 +107,26 @@ var Line = /** @class */ (function () {
                 _$svg.removeChild(_this.$line);
             }
         };
-        this.Draw = function (_$svg, _color) {
+        this.Draw = function (_$svg) {
             _this.$line = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            Line.Draw(_this.$line, _this.p1, _this.p2, _color, _this.id);
+            var $line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            $line1.setAttributeNS(null, "x1", "" + _this.p1.x);
+            $line1.setAttributeNS(null, "y1", "" + _this.p1.y);
+            $line1.setAttributeNS(null, "x2", "" + _this.p2.x);
+            $line1.setAttributeNS(null, "y2", "" + _this.p2.y);
+            $line1.setAttributeNS(null, "stroke", "black");
+            _this.$line.appendChild($line1);
             var $circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             $circle1.setAttributeNS(null, "cx", "" + _this.p1.x);
             $circle1.setAttributeNS(null, "cy", "" + _this.p1.y);
             $circle1.setAttributeNS(null, "r", "" + 5);
-            $circle1.setAttributeNS(null, "stroke", _color);
+            $circle1.setAttributeNS(null, "stroke", "black");
             _this.$line.appendChild($circle1);
             var $circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             $circle2.setAttributeNS(null, "cx", "" + _this.p2.x);
             $circle2.setAttributeNS(null, "cy", "" + _this.p2.y);
             $circle2.setAttributeNS(null, "r", "" + 5);
-            $circle2.setAttributeNS(null, "stroke", _color);
+            $circle2.setAttributeNS(null, "stroke", "black");
             _this.$line.appendChild($circle2);
             _$svg.appendChild(_this.$line);
         };
@@ -142,17 +148,6 @@ var Line = /** @class */ (function () {
         this.$line = undefined;
     }
     Line.count = 0;
-    Line.Draw = function (_$svg, _p1, _p2, _color, _id) {
-        var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        $line.id = _id;
-        $line.setAttributeNS(null, "x1", "" + _p1.x);
-        $line.setAttributeNS(null, "y1", "" + _p1.y);
-        $line.setAttributeNS(null, "x2", "" + _p2.x);
-        $line.setAttributeNS(null, "y2", "" + _p2.y);
-        $line.setAttributeNS(null, "stroke", _color);
-        _$svg.appendChild($line);
-        return $line;
-    };
     return Line;
 }());
 /// <reference path="point.ts">
@@ -165,7 +160,7 @@ var $svg = document.getElementById("svg");
 var $tmpline = document.createElementNS("http://www.w3.org/2000/svg", "line");
 $tmpline.setAttributeNS(null, "stroke", "black");
 $tmpline.setAttributeNS(null, "stroke-dasharray", "" + 4);
-$tmpline.setAttributeNS(null, "stroke-opacity", "" + 1.0);
+$tmpline.setAttributeNS(null, "stroke-opacity", "" + 0.0);
 $svg.appendChild($tmpline);
 var $mode = document.getElementById("form_mode");
 $svg.addEventListener("mousedown", function (e) {
@@ -178,6 +173,8 @@ $svg.addEventListener("mousedown", function (e) {
                 Point0 = OverwritePoint(Point0, PointList);
                 $tmpline.setAttributeNS(null, "x1", "" + Point0.x);
                 $tmpline.setAttributeNS(null, "y1", "" + Point0.y);
+                $tmpline.setAttributeNS(null, "x2", "" + Point0.x);
+                $tmpline.setAttributeNS(null, "y2", "" + Point0.y);
                 $tmpline.setAttributeNS(null, "stroke-opacity", "" + 1.0);
                 break;
             case "fix":
@@ -212,9 +209,9 @@ $svg.addEventListener("mousemove", function (e) {
     }
 });
 $svg.addEventListener("mouseup", function (e) {
-    if (e.button === 0 && (Mode === "beam" || (Mode === "load" && Point0.shared))) {
+    if (e.button === 0) {
         $tmpline.setAttributeNS(null, "stroke-opacity", "" + 0.0);
-        if (Point0.Distance(Point1) > 20) {
+        if ((Mode === "beam" || (Mode === "load" && Point0.shared)) && Point0.Distance(Point1) > 20) {
             switch (Mode) {
                 case "beam":
                     if (!Point0.shared) {
@@ -225,7 +222,7 @@ $svg.addEventListener("mouseup", function (e) {
                     }
                     var line = new Line(Point0, Point1);
                     LineList.push(line);
-                    line.Draw($svg, "black");
+                    line.Draw($svg);
                     console.log(PointList, LineList);
                     break;
                 case "load":
@@ -235,12 +232,12 @@ $svg.addEventListener("mouseup", function (e) {
         }
     }
 });
-$svg.addEventListener("mouseout", function (e) {
+$svg.addEventListener("mouseleave", function (e) {
     if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
         $tmpline.setAttributeNS(null, "stroke-opacity", "" + 0.0);
     }
 });
-$svg.addEventListener("mouseover", function (e) {
+$svg.addEventListener("mouseenter", function (e) {
     if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
         $tmpline.setAttributeNS(null, "stroke-opacity", "" + 1.0);
     }

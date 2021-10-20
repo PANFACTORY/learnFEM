@@ -10,7 +10,7 @@ const $svg = document.getElementById("svg");
 const $tmpline : SVGLineElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
 $tmpline.setAttributeNS(null, "stroke", "black");
 $tmpline.setAttributeNS(null, "stroke-dasharray", `${4}`);
-$tmpline.setAttributeNS(null, "stroke-opacity", `${1.0}`);
+$tmpline.setAttributeNS(null, "stroke-opacity", `${0.0}`);
 $svg.appendChild($tmpline);
 const $mode : HTMLFormElement = <HTMLFormElement>document.getElementById("form_mode");
 
@@ -24,6 +24,8 @@ $svg.addEventListener("mousedown", (e) => {
                 Point0 = OverwritePoint(Point0, PointList);
                 $tmpline.setAttributeNS(null, "x1", `${Point0.x}`);
                 $tmpline.setAttributeNS(null, "y1", `${Point0.y}`);
+                $tmpline.setAttributeNS(null, "x2", `${Point0.x}`);
+                $tmpline.setAttributeNS(null, "y2", `${Point0.y}`);
                 $tmpline.setAttributeNS(null, "stroke-opacity", `${1.0}`);
                 break;
             case "fix":
@@ -58,9 +60,9 @@ $svg.addEventListener("mousemove", (e) => {
     }
 });
 $svg.addEventListener("mouseup", (e) => {
-    if (e.button === 0 && (Mode === "beam" || (Mode === "load" && Point0.shared))) {
+    if (e.button === 0) {
         $tmpline.setAttributeNS(null, "stroke-opacity", `${0.0}`);
-        if (Point0.Distance(Point1) > 20) {
+        if ((Mode === "beam" || (Mode === "load" && Point0.shared)) && Point0.Distance(Point1) > 20) {
             switch (Mode) {
                 case "beam":
                     if (!Point0.shared) {
@@ -71,7 +73,7 @@ $svg.addEventListener("mouseup", (e) => {
                     }
                     const line = new Line(Point0, Point1);
                     LineList.push(line)
-                    line.Draw($svg, "black");
+                    line.Draw($svg);
                     console.log(PointList, LineList);
                     break;
                 case "load":
@@ -81,12 +83,12 @@ $svg.addEventListener("mouseup", (e) => {
         }
     }
 });
-$svg.addEventListener("mouseout", (e) => {
+$svg.addEventListener("mouseleave", (e) => {
     if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
         $tmpline.setAttributeNS(null, "stroke-opacity", `${0.0}`);
     }
 });
-$svg.addEventListener("mouseover", (e) => {
+$svg.addEventListener("mouseenter", (e) => {
     if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
         $tmpline.setAttributeNS(null, "stroke-opacity", `${1.0}`);
     }
