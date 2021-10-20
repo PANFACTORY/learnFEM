@@ -109,11 +109,14 @@ var OverwritePoint = function (_point, _pointlist) {
 var Line = /** @class */ (function () {
     function Line(_p1, _p2) {
         var _this = this;
-        this.Dispose = function (_$svg) {
+        this.Dispose = function (_$svg_model, _$svg_result) {
             _this.p1.shared--;
             _this.p2.shared--;
             if (_this.$line) {
-                _$svg.removeChild(_this.$line);
+                _$svg_model.removeChild(_this.$line);
+            }
+            if (_this.$deformedline) {
+                _$svg_result.removeChild(_this.$deformedline);
             }
         };
         this.Draw = function (_$svg) {
@@ -195,20 +198,23 @@ var Line = /** @class */ (function () {
             Ke[5][5] = k4;
             return Ke;
         };
-        this.DrawDisplacement = function (_$svg) {
-            var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            $line.setAttributeNS(null, "x1", "" + (_this.p1.x + _this.p1.ux));
-            $line.setAttributeNS(null, "y1", "" + (_this.p1.y + _this.p1.uy));
-            $line.setAttributeNS(null, "x2", "" + (_this.p2.x + _this.p2.ux));
-            $line.setAttributeNS(null, "y2", "" + (_this.p2.y + _this.p2.uy));
-            $line.setAttributeNS(null, "stroke", "red");
-            _$svg.appendChild($line);
+        this.DrawDisplacement = function (_$svg, _scale) {
+            if (!_this.$deformedline) {
+                _this.$deformedline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                _this.$deformedline.setAttributeNS(null, "stroke", "red");
+                _$svg.appendChild(_this.$deformedline);
+            }
+            _this.$deformedline.setAttributeNS(null, "x1", "" + (_this.p1.x + _scale * _this.p1.ux));
+            _this.$deformedline.setAttributeNS(null, "y1", "" + (_this.p1.y + _scale * _this.p1.uy));
+            _this.$deformedline.setAttributeNS(null, "x2", "" + (_this.p2.x + _scale * _this.p2.ux));
+            _this.$deformedline.setAttributeNS(null, "y2", "" + (_this.p2.y + _scale * _this.p2.uy));
         };
         this.p1 = _p1;
         this.p1.shared++;
         this.p2 = _p2;
         this.p2.shared++;
         this.$line = undefined;
+        this.$deformedline = undefined;
         this.diameter = 100.0;
         this.young = Math.pow(10, 6);
     }
@@ -307,8 +313,8 @@ var Solve = function (_point, _line) {
     //  Postprocess for point
     for (var i = 0; i < _point.length; ++i) {
         var gi = _point[i].id;
-        _point[i].ux = u[3 * gi + 0] * 100 / umax;
-        _point[i].uy = u[3 * gi + 1] * 100 / umax;
+        _point[i].ux = u[3 * gi + 0] / umax;
+        _point[i].uy = u[3 * gi + 1] / umax;
     }
     //  Postprocess for line
 };
@@ -362,14 +368,10 @@ var LineList = [];
 var Mode = "beam";
 var $svg = document.getElementById("svg");
 var $guide = document.getElementById("guide");
+var $svg_model = document.getElementById("svg_model");
+var $svg_bc = document.getElementById("svg_bc");
+var $svg_result = document.getElementById("svg_result");
 var $mode = document.getElementById("form_mode");
-var $btn_analyse = document.getElementById("btn_analyse");
-$btn_analyse.addEventListener("click", function (e) {
-    Solve(PointList, LineList);
-    for (var i = 0; i < LineList.length; ++i) {
-        LineList[i].DrawDisplacement($svg);
-    }
-});
 $svg.addEventListener("mousedown", function (e) {
     Mode = $mode.elements["options"].value;
     if (e.buttons === 1) {
@@ -387,20 +389,20 @@ $svg.addEventListener("mousedown", function (e) {
             case "fix":
                 for (var i = PointList.length - 1; i >= 0; --i) {
                     if (PointList[i].Distance(Point0) < 10) {
-                        PointList[i].Fix($svg);
+                        PointList[i].Fix($svg_bc);
                     }
                 }
                 break;
             case "delete":
                 for (var i = LineList.length - 1; i >= 0; --i) {
                     if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
-                        LineList[i].Dispose($svg);
+                        LineList[i].Dispose($svg_model, $svg_result);
                         LineList.splice(i, 1);
                     }
                 }
                 for (var i = PointList.length - 1; i >= 0; --i) {
                     if (PointList[i].shared === 0) {
-                        PointList[i].Dispose($svg);
+                        PointList[i].Dispose($svg_bc);
                         PointList.splice(i, 1);
                     }
                 }
@@ -429,11 +431,11 @@ $svg.addEventListener("mouseup", function (e) {
                     }
                     var line = new Line(Point0, Point1);
                     LineList.push(line);
-                    line.Draw($svg);
+                    line.Draw($svg_model);
                     console.log(PointList, LineList);
                     break;
                 case "load":
-                    Point0.Force($svg, Point1);
+                    Point0.Force($svg_bc, Point1);
                     break;
             }
         }
@@ -447,5 +449,12 @@ $svg.addEventListener("mouseleave", function (e) {
 $svg.addEventListener("mouseenter", function (e) {
     if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
         $guide.setAttributeNS(null, "stroke-opacity", "" + 1.0);
+    }
+});
+var $btn_analyse = document.getElementById("btn_analyse");
+$btn_analyse.addEventListener("click", function (e) {
+    Solve(PointList, LineList);
+    for (var i = 0; i < LineList.length; ++i) {
+        LineList[i].DrawDisplacement($svg_result, 30);
     }
 });

@@ -9,7 +9,9 @@ let Mode : string = "beam";
 
 const $svg = document.getElementById("svg");
 const $guide = document.getElementById("guide");
-
+const $svg_model = document.getElementById("svg_model");
+const $svg_bc = document.getElementById("svg_bc");
+const $svg_result = document.getElementById("svg_result");
 const $mode : HTMLFormElement = <HTMLFormElement>document.getElementById("form_mode");
 $svg.addEventListener("mousedown", (e) => {
     Mode = $mode.elements["options"].value;
@@ -28,20 +30,20 @@ $svg.addEventListener("mousedown", (e) => {
             case "fix":
                 for (let i : number = PointList.length - 1; i >= 0; --i) {
                     if(PointList[i].Distance(Point0) < 10) {
-                        PointList[i].Fix($svg);
+                        PointList[i].Fix($svg_bc);
                     }
                 }
                 break;
             case "delete":
                 for (let i : number = LineList.length - 1; i >= 0; --i) {
                     if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
-                        LineList[i].Dispose($svg);
+                        LineList[i].Dispose($svg_model, $svg_result);
                         LineList.splice(i, 1);
                     }
                 }
                 for (let i : number = PointList.length - 1; i >= 0; --i) {
                     if(PointList[i].shared === 0) {
-                        PointList[i].Dispose($svg);
+                        PointList[i].Dispose($svg_bc);
                         PointList.splice(i, 1);
                     }
                 }
@@ -70,11 +72,11 @@ $svg.addEventListener("mouseup", (e) => {
                     }
                     const line = new Line(Point0, Point1);
                     LineList.push(line)
-                    line.Draw($svg);
+                    line.Draw($svg_model);
                     console.log(PointList, LineList);
                     break;
                 case "load":
-                    Point0.Force($svg, Point1);
+                    Point0.Force($svg_bc, Point1);
                     break;
             }
         }
@@ -95,6 +97,6 @@ const $btn_analyse = document.getElementById("btn_analyse");
 $btn_analyse.addEventListener("click", (e) => {
     Solve(PointList, LineList);
     for (let i : number = 0; i < LineList.length; ++i) {
-        LineList[i].DrawDisplacement($svg);
+        LineList[i].DrawDisplacement($svg_result, 30);
     }
 });

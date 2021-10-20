@@ -6,6 +6,7 @@ class Line {
     diameter : number;
     young : number;
     private $line : SVGElement;
+    private $deformedline : SVGElement;
 
     constructor(_p1 : Point, _p2 : Point) {
         this.p1 = _p1;
@@ -13,15 +14,19 @@ class Line {
         this.p2 = _p2;
         this.p2.shared++;
         this.$line = undefined;
+        this.$deformedline = undefined;
         this.diameter = 100.0;
         this.young = 10**6;
     }
 
-    Dispose = (_$svg) => {
+    Dispose = (_$svg_model, _$svg_result) => {
         this.p1.shared--;
         this.p2.shared--;
         if (this.$line) {
-            _$svg.removeChild(this.$line);
+            _$svg_model.removeChild(this.$line);   
+        }
+        if (this.$deformedline) {
+            _$svg_result.removeChild(this.$deformedline);
         }
     }
 
@@ -77,13 +82,15 @@ class Line {
         return Ke;
     }
 
-    DrawDisplacement = (_$svg) => {
-        const $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        $line.setAttributeNS(null, "x1", `${this.p1.x + this.p1.ux}`);
-        $line.setAttributeNS(null, "y1", `${this.p1.y + this.p1.uy}`);
-        $line.setAttributeNS(null, "x2", `${this.p2.x + this.p2.ux}`);
-        $line.setAttributeNS(null, "y2", `${this.p2.y + this.p2.uy}`);
-        $line.setAttributeNS(null, "stroke", "red");
-        _$svg.appendChild($line);
+    DrawDisplacement = (_$svg, _scale : number) => {
+        if (!this.$deformedline) {
+            this.$deformedline = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            this.$deformedline.setAttributeNS(null, "stroke", "red");
+            _$svg.appendChild(this.$deformedline);
+        }
+        this.$deformedline.setAttributeNS(null, "x1", `${this.p1.x + _scale*this.p1.ux}`);
+        this.$deformedline.setAttributeNS(null, "y1", `${this.p1.y + _scale*this.p1.uy}`);
+        this.$deformedline.setAttributeNS(null, "x2", `${this.p2.x + _scale*this.p2.ux}`);
+        this.$deformedline.setAttributeNS(null, "y2", `${this.p2.y + _scale*this.p2.uy}`);
     }
 }

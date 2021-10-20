@@ -67,8 +67,8 @@ const Solve = (_point : Point[], _line : Line[]) => {
     //  Postprocess for point
     for (let i : number = 0; i < _point.length; ++i) {
         let gi : number = _point[i].id;
-        _point[i].ux = u[3*gi + 0]*100/umax;
-        _point[i].uy = u[3*gi + 1]*100/umax;
+        _point[i].ux = u[3*gi + 0]/umax;
+        _point[i].uy = u[3*gi + 1]/umax;
     }
 
     //  Postprocess for line
