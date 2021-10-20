@@ -17,6 +17,7 @@ $svg.addEventListener("mousedown", (e) => {
     Mode = $mode.elements["options"].value;
     if (e.buttons === 1) {
         Point0 = new Point(e.clientX, e.clientY);
+        let ischanged : boolean = false;
         switch (Mode) {
             case "beam":
             case "load":
@@ -31,29 +32,28 @@ $svg.addEventListener("mousedown", (e) => {
                 for (let i : number = PointList.length - 1; i >= 0; --i) {
                     if(PointList[i].Distance(Point0) < 10) {
                         PointList[i].Fix($svg_bc);
+                        ischanged = true;
                     }
                 }
                 break;
             case "delete":
-                let isdeleted : boolean = false;
                 for (let i : number = LineList.length - 1; i >= 0; --i) {
                     if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
                         LineList[i].Dispose($svg_model, $svg_result);
                         LineList.splice(i, 1);
-                        isdeleted = true;
+                        ischanged = true;
                     }
                 }
-                if (isdeleted) {
-                    for (let i : number = PointList.length - 1; i >= 0; --i) {
-                        if(PointList[i].shared === 0) {
-                            PointList[i].Dispose($svg_bc);
-                            PointList.splice(i, 1);
-                        }
+                for (let i : number = PointList.length - 1; i >= 0; --i) {
+                    if(PointList[i].shared === 0) {
+                        PointList[i].Dispose($svg_bc);
+                        PointList.splice(i, 1);
                     }
-                    $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
                 }
-                
                 break;
+        }
+        if (ischanged) {
+            $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
         }
     }
 });
@@ -68,6 +68,7 @@ $svg.addEventListener("mouseup", (e) => {
     if (e.button === 0) {
         $guide.setAttributeNS(null, "stroke-opacity", `${0.0}`);
         if ((Mode === "beam" || (Mode === "load" && Point0.shared)) && Point0.Distance(Point1) > 20) {
+            $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
             switch (Mode) {
                 case "beam":
                     if (!Point0.shared) {
