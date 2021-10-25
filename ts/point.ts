@@ -118,3 +118,23 @@ const OverwritePoint = (_point : Point, _pointlist : Point[]) : Point => {
     }
     return point;
 }
+
+const OverwritePointX = (_point : Point, _pointlist : Point[]) : Point => {
+    let point = _point;
+    for (let i : number = 0; i < _pointlist.length; ++i) {
+        if (Math.abs(point.x - _pointlist[i].x) < 5) {
+            point.x = _pointlist[i].x;
+        }
+    }
+    return point;
+}
+
+const OverwritePointY = (_point : Point, _pointlist : Point[]) : Point => {
+    let point = _point;
+    for (let i : number = 0; i < _pointlist.length; ++i) {
+        if (Math.abs(point.y - _pointlist[i].y) < 5) {
+            point.y = _pointlist[i].y;
+        }
+    }
+    return point;
+}

@@ -51,6 +51,12 @@ class Line {
         $circle2.setAttributeNS(null, "r", `${5}`);
         $circle2.setAttributeNS(null, "stroke", "black");
         this.$line.appendChild($circle2);
+        const $length : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        $length.setAttributeNS(null, "x", `${(this.p1.x + this.p2.x)/2}`);
+        $length.setAttributeNS(null, "y", `${(this.p1.y + this.p2.y)/2}`);
+        $length.setAttributeNS(null, "style", "user-select: none");
+        $length.innerHTML = `${this.p1.Distance(this.p2).toFixed()}`;
+        this.$line.appendChild($length);
         _$svg.appendChild(this.$line);
     }
 
