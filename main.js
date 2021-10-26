@@ -48,7 +48,7 @@ var Line = /** @class */ (function () {
             return d0 < 5 && d1 < d3 + 5 && d2 < d3 + 5;
         };
         this.StiffnessMatrix = function () {
-            var A = 0.25 * Math.PI * Math.pow(_this.diameter, 2), I = Math.PI * Math.pow(_this.diameter, 4) / 64, L = _this.point[0].Distance(_this.point[1]);
+            var A = _this.area, I = Math.pow(_this.area, 2) / (4 * Math.PI), L = _this.point[0].Distance(_this.point[1]);
             var k1 = A * _this.young / L, k2 = 12 * _this.young * I / (Math.pow(L, 3)), k3 = 6 * _this.young * I / (Math.pow(L, 2)), k4 = 4 * _this.young * I / L, k5 = 2 * _this.young * I / L;
             var c = (_this.point[1].x - _this.point[0].x) / L, s = (_this.point[1].y - _this.point[0].y) / L;
             var Ke = new Array(6);
@@ -93,16 +93,51 @@ var Line = /** @class */ (function () {
             Ke[5][5] = k4;
             return Ke;
         };
-        this.DrawDisplacement = function (_$svg, _scale) {
-            if (!_this.$deformedline) {
-                _this.$deformedline = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                _this.$deformedline.setAttributeNS(null, "stroke", "red");
-                _$svg.appendChild(_this.$deformedline);
+        this.SensitivityMatrix = function () {
+            var dA = 1, dI = _this.area / (2 * Math.PI), L = _this.point[0].Distance(_this.point[1]);
+            var k1 = dA * _this.young / L, k2 = 12 * _this.young * dI / (Math.pow(L, 3)), k3 = 6 * _this.young * dI / (Math.pow(L, 2)), k4 = 4 * _this.young * dI / L, k5 = 2 * _this.young * dI / L;
+            var c = (_this.point[1].x - _this.point[0].x) / L, s = (_this.point[1].y - _this.point[0].y) / L;
+            var Ke = new Array(6);
+            for (var i = 0; i < 6; ++i) {
+                Ke[i] = new Array(6);
             }
-            _this.$deformedline.setAttributeNS(null, "x1", "" + (_this.point[0].x + _scale * _this.point[0].ux));
-            _this.$deformedline.setAttributeNS(null, "y1", "" + (_this.point[0].y + _scale * _this.point[0].uy));
-            _this.$deformedline.setAttributeNS(null, "x2", "" + (_this.point[1].x + _scale * _this.point[1].ux));
-            _this.$deformedline.setAttributeNS(null, "y2", "" + (_this.point[1].y + _scale * _this.point[1].uy));
+            Ke[0][0] = k1 * c * c + k2 * s * s;
+            Ke[0][1] = k1 * c * s - k2 * c * s;
+            Ke[0][2] = -k3 * s;
+            Ke[0][3] = -k1 * c * c - k2 * s * s;
+            Ke[0][4] = -k1 * c * s + k2 * c * s;
+            Ke[0][5] = -k3 * s;
+            Ke[1][0] = Ke[0][1];
+            Ke[1][1] = k1 * s * s + k2 * c * c;
+            Ke[1][2] = k3 * c;
+            Ke[1][3] = -k1 * c * s + k2 * c * s;
+            Ke[1][4] = -k1 * s * s - k2 * c * c;
+            Ke[1][5] = k3 * c;
+            Ke[2][0] = Ke[0][2];
+            Ke[2][1] = Ke[1][2];
+            Ke[2][2] = k4;
+            Ke[2][3] = k3 * s;
+            Ke[2][4] = -k3 * c;
+            Ke[2][5] = k5;
+            Ke[3][0] = Ke[0][3];
+            Ke[3][1] = Ke[1][3];
+            Ke[3][2] = Ke[2][3];
+            Ke[3][3] = k1 * c * c + k2 * s * s;
+            Ke[3][4] = k1 * c * s - k2 * c * s;
+            Ke[3][5] = k3 * s;
+            Ke[4][0] = Ke[0][4];
+            Ke[4][1] = Ke[1][4];
+            Ke[4][2] = Ke[2][4];
+            Ke[4][3] = Ke[3][4];
+            Ke[4][4] = k1 * s * s + k2 * c * c;
+            Ke[4][5] = -k3 * c;
+            Ke[5][0] = Ke[0][5];
+            Ke[5][1] = Ke[1][5];
+            Ke[5][2] = Ke[2][5];
+            Ke[5][3] = Ke[3][5];
+            Ke[5][4] = Ke[4][5];
+            Ke[5][5] = k4;
+            return Ke;
         };
         this.point = [];
         this.point.push(_p1);
@@ -111,7 +146,7 @@ var Line = /** @class */ (function () {
         this.point[1].shared++;
         this.$line = undefined;
         this.$deformedline = undefined;
-        this.diameter = 100.0;
+        this.area = 100.0;
         this.young = Math.pow(10, 6);
     }
     return Line;
@@ -119,6 +154,7 @@ var Line = /** @class */ (function () {
 /// <reference path="point.ts">
 /// <reference path="line.ts">
 /// <reference path="solver.ts">
+/// <reference path="grandstructure.ts">
 var PointList = [];
 var Point0, Point1;
 var LineList = [];
@@ -129,6 +165,7 @@ var $guide_length = document.getElementById("guide_length");
 var $svg_model = document.getElementById("svg_model");
 var $svg_bc = document.getElementById("svg_bc");
 var $svg_result = document.getElementById("svg_result");
+var $svg_opt = document.getElementById("svg_opt");
 var $mode = document.getElementById("form_mode");
 $svg.addEventListener("mousedown", function (e) {
     Mode = $mode.elements["options"].value;
@@ -171,7 +208,9 @@ $svg.addEventListener("mousedown", function (e) {
                 break;
         }
         if (ischanged) {
+            $svg_model.setAttributeNS(null, "opacity", "" + 1.0);
             $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
+            $svg_opt.setAttributeNS(null, "opacity", "" + 0.0);
         }
     }
 });
@@ -186,8 +225,9 @@ $svg.addEventListener("mousemove", function (e) {
             }
         }
         else {
-            Point1 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
+            Point1 = new Point(e.clientX, e.clientY);
         }
+        Point1 = OverwritePoint(Point1, PointList);
         $guide.setAttributeNS(null, "x2", "" + Point1.x);
         $guide.setAttributeNS(null, "y2", "" + Point1.y);
         $guide_length.setAttributeNS(null, "x", "" + (Point0.x + Point1.x) / 2);
@@ -201,7 +241,9 @@ $svg.addEventListener("mouseup", function (e) {
         $guide_length.setAttributeNS(null, "opacity", "" + 0.0);
         $guide_length.innerHTML = "";
         if ((Mode === "beam" || (Mode === "load" && Point0.shared)) && Point0.Distance(Point1) > 20) {
+            $svg_model.setAttributeNS(null, "opacity", "" + 1.0);
             $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
+            $svg_opt.setAttributeNS(null, "opacity", "" + 0.0);
             switch (Mode) {
                 case "beam":
                     if (!Point0.shared) {
@@ -237,11 +279,17 @@ $svg.addEventListener("mouseenter", function (e) {
 });
 var $btn_analyse = document.getElementById("btn_analyse");
 $btn_analyse.addEventListener("click", function (e) {
-    Solve(PointList, LineList);
-    for (var i = 0; i < LineList.length; ++i) {
-        LineList[i].DrawDisplacement($svg_result, 30);
-    }
+    Solve(PointList, LineList, true, $svg_result);
+    $svg_model.setAttributeNS(null, "opacity", "" + 1.0);
     $svg_result.setAttributeNS(null, "opacity", "" + 1.0);
+    $svg_opt.setAttributeNS(null, "opacity", "" + 0.0);
+});
+var $btn_optimize = document.getElementById("btn_optimize");
+$btn_optimize.addEventListener("click", function (e) {
+    Optimize(PointList, LineList, $svg_opt);
+    $svg_model.setAttributeNS(null, "opacity", "" + 0.0);
+    $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
+    $svg_opt.setAttributeNS(null, "opacity", "" + 1.0);
 });
 var Point = /** @class */ (function () {
     function Point(_x, _y) {
@@ -335,6 +383,7 @@ var Point = /** @class */ (function () {
         this.forcey = 0;
         this.ux = 0;
         this.uy = 0;
+        this.ut = 0;
         this.id = -1;
         this.$fix = undefined;
         this.$force = undefined;
@@ -370,14 +419,20 @@ var OverwritePointY = function (_point, _pointlist) {
 };
 /// <reference path="point.ts">
 /// <reference path="line.ts">
-var Solve = function (_point, _line) {
+var Solve = function (_point, _line, _issavelog, _$svg) {
+    if (_issavelog === void 0) { _issavelog = true; }
+    if (_$svg === void 0) { _$svg = undefined; }
     //  Renumber id of point
-    console.log("Renumber id of point");
+    if (_issavelog) {
+        console.log("Renumber id of point");
+    }
     for (var i = 0; i < _point.length; ++i) {
         _point[i].id = i;
     }
     //  Make globally assembled stiffness matrix
-    console.log("Make element stiffness matrix and assembling");
+    if (_issavelog) {
+        console.log("Make element stiffness matrix and assembling");
+    }
     var K = new Array(_point.length * 3);
     for (var i = 0; i < _point.length * 3; ++i) {
         K[i] = new Array(_point.length * 3);
@@ -390,7 +445,6 @@ var Solve = function (_point, _line) {
         for (var i = 0; i < _line[k].point.length; ++i) {
             for (var j = 0; j < _line[k].point.length; ++j) {
                 var gi = _line[k].point[i].id, gj = _line[k].point[j].id;
-                console.log(k, Ke);
                 K[3 * gi + 0][3 * gj + 0] += Ke[3 * i + 0][3 * j + 0];
                 K[3 * gi + 0][3 * gj + 1] += Ke[3 * i + 0][3 * j + 1];
                 K[3 * gi + 0][3 * gj + 2] += Ke[3 * i + 0][3 * j + 2];
@@ -402,9 +456,14 @@ var Solve = function (_point, _line) {
                 K[3 * gi + 2][3 * gj + 2] += Ke[3 * i + 2][3 * j + 2];
             }
         }
+        if (_issavelog) {
+            console.log(k, Ke);
+        }
     }
     //  Apply boundary condition of fix
-    console.log("Apply boundary condition of fix");
+    if (_issavelog) {
+        console.log("Apply boundary condition of fix");
+    }
     for (var i = 0; i < _point.length; ++i) {
         if (_point[i].isfixed) {
             var gi = _point[i].id;
@@ -414,7 +473,9 @@ var Solve = function (_point, _line) {
         }
     }
     //  Apply boundary condition of force
-    console.log("Apply boundary condition of force");
+    if (_issavelog) {
+        console.log("Apply boundary condition of force");
+    }
     var F = new Array(_point.length * 3);
     for (var i = 0; i < _point.length * 3; ++i) {
         F[i] = 0;
@@ -427,21 +488,40 @@ var Solve = function (_point, _line) {
         }
     }
     //  Solve linear system
-    console.log(K, F);
+    if (_issavelog) {
+        console.log(K, F);
+    }
     var u = Gauss(K, F);
     var umax = 0;
     for (var i = 0; i < _point.length; ++i) {
         var gi = _point[i].id;
         umax = Math.max(umax, Math.abs(u[3 * gi + 0]), Math.abs(u[3 * gi + 1]));
     }
-    console.log(u);
+    if (_issavelog) {
+        console.log(u);
+    }
     //  Postprocess for point
     for (var i = 0; i < _point.length; ++i) {
         var gi = _point[i].id;
-        _point[i].ux = u[3 * gi + 0] / umax;
-        _point[i].uy = u[3 * gi + 1] / umax;
+        _point[i].ux = u[3 * gi + 0];
+        _point[i].uy = u[3 * gi + 1];
+        _point[i].ut = u[3 * gi + 2];
     }
     //  Postprocess for line
+    if (_$svg) {
+        while (_$svg.firstChild) {
+            _$svg.removeChild(_$svg.firstChild);
+        }
+        for (var k = 0; k < _line.length; ++k) {
+            var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            $line.setAttributeNS(null, "x1", "" + (_line[k].point[0].x + 100 * _line[k].point[0].ux / umax));
+            $line.setAttributeNS(null, "y1", "" + (_line[k].point[0].y + 100 * _line[k].point[0].uy / umax));
+            $line.setAttributeNS(null, "x2", "" + (_line[k].point[1].x + 100 * _line[k].point[1].ux / umax));
+            $line.setAttributeNS(null, "y2", "" + (_line[k].point[1].y + 100 * _line[k].point[1].uy / umax));
+            $line.setAttributeNS(null, "stroke", "red");
+            _$svg.appendChild($line);
+        }
+    }
 };
 var Gauss = function (_A, _b) {
     for (var i = 0; i < _A.length - 1; ++i) {
@@ -483,4 +563,92 @@ var Gauss = function (_A, _b) {
         x[i] /= _A[i][i];
     }
     return x;
+};
+/// <reference path="point.ts">
+/// <reference path="line.ts">
+/// <reference path="solver.ts">
+var Optimize = function (_point, _line, _$svg) {
+    //  Parameters
+    var amax = 10, amin = 1e-1;
+    var itrmax = 100, iota = 0.5, eps = 1e-5, movelimit = 0.05, weightlimit = 0.5;
+    //  Initialize
+    var g0 = 0;
+    for (var k = 0; k < _line.length; ++k) {
+        _line[k].area = amax;
+        g0 += _line[k].area * _line[k].point[0].Distance(_line[k].point[1]);
+    }
+    //  Optimization loop
+    var dnew = new Array(_line.length);
+    var dfdd = new Array(_line.length), dgdd = new Array(_line.length);
+    for (var itr = 0; itr < itrmax; ++itr) {
+        //  Get constraint function value and sensitivity
+        var gnow = -1;
+        for (var k = 0; k < _line.length; ++k) {
+            gnow += _line[k].area * _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
+            dgdd[k] = _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
+        }
+        //  Get objective function value
+        var fnow = 0;
+        Solve(_point, _line, false);
+        for (var k = 0; k < _point.length; ++k) {
+            fnow += _point[k].ux * _point[k].forcex + _point[k].uy * _point[k].forcey;
+        }
+        //  Get objective function sensitivity
+        for (var k = 0; k < _line.length; ++k) {
+            dfdd[k] = 0;
+            var Ke = _line[k].SensitivityMatrix();
+            for (var i = 0; i < _line[k].point.length; ++i) {
+                var uxi = _line[k].point[i].ux, uyi = _line[k].point[i].uy, uti = _line[k].point[i].ut;
+                for (var j = 0; j < _line[k].point.length; ++j) {
+                    var uxj = _line[k].point[j].ux, uyj = _line[k].point[j].uy, utj = _line[k].point[j].ut;
+                    dfdd[k] -= uxi * Ke[3 * i + 0][3 * j + 0] * uxj + uxi * Ke[3 * i + 0][3 * j + 1] * uyj + uxi * Ke[3 * i + 0][3 * j + 2] * utj
+                        + uyi * Ke[3 * i + 1][3 * j + 0] * uxj + uyi * Ke[3 * i + 1][3 * j + 1] * uyj + uyi * Ke[3 * i + 1][3 * j + 2] * utj
+                        + uti * Ke[3 * i + 2][3 * j + 0] * uxj + uti * Ke[3 * i + 2][3 * j + 1] * uyj + uti * Ke[3 * i + 2][3 * j + 2] * utj;
+                }
+            }
+        }
+        //  Update design variable
+        var lambda0 = 0, lambda1 = 1e4, lambda = void 0;
+        while (lambda1 - lambda0 > eps * (lambda1 + lambda0)) {
+            lambda = 0.5 * (lambda1 + lambda0);
+            for (var k = 0; k < _line.length; ++k) {
+                dnew[k] = Math.pow(-dfdd[k] / (dgdd[k] * lambda), iota) * _line[k].area;
+                if (dnew[k] < Math.max(amin, (1.0 - movelimit) * _line[k].area)) {
+                    dnew[k] = Math.max(amin, (1.0 - movelimit) * _line[k].area);
+                }
+                else if (dnew[k] > Math.min(amax, (1.0 + movelimit) * _line[k].area)) {
+                    dnew[k] = Math.min(amax, (1.0 + movelimit) * _line[k].area);
+                }
+            }
+            var gnew = 0;
+            for (var k = 0; k < _line.length; ++k) {
+                gnew += dnew[k] * _line[k].point[0].Distance(_line[k].point[1]);
+            }
+            if (gnew > weightlimit * g0) {
+                lambda0 = lambda;
+            }
+            else {
+                lambda1 = lambda;
+            }
+        }
+        for (var k = 0; k < _line.length; ++k) {
+            _line[k].area = dnew[k];
+        }
+        console.log(itr, fnow, gnow);
+        //console.log("itr", itr, "lambda", lambda, "g", gnow, "dfdd", dfdd, "dgdd", dgdd, "dnew", dnew);
+    }
+    //  Export result
+    while (_$svg.firstChild) {
+        _$svg.removeChild(_$svg.firstChild);
+    }
+    for (var k = 0; k < _line.length; ++k) {
+        var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        $line.setAttributeNS(null, "x1", "" + _line[k].point[0].x);
+        $line.setAttributeNS(null, "y1", "" + _line[k].point[0].y);
+        $line.setAttributeNS(null, "x2", "" + _line[k].point[1].x);
+        $line.setAttributeNS(null, "y2", "" + _line[k].point[1].y);
+        $line.setAttributeNS(null, "stroke", "black");
+        $line.setAttributeNS(null, "stroke-width", _line[k].area + "px");
+        _$svg.appendChild($line);
+    }
 };

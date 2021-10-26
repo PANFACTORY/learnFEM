@@ -1,6 +1,7 @@
 /// <reference path="point.ts">
 /// <reference path="line.ts">
 /// <reference path="solver.ts">
+/// <reference path="grandstructure.ts">
 
 let PointList : Point[] = [];
 let Point0 : Point, Point1 : Point;
@@ -13,6 +14,7 @@ const $guide_length = document.getElementById("guide_length");
 const $svg_model = document.getElementById("svg_model");
 const $svg_bc = document.getElementById("svg_bc");
 const $svg_result = document.getElementById("svg_result");
+const $svg_opt = document.getElementById("svg_opt");
 const $mode : HTMLFormElement = <HTMLFormElement>document.getElementById("form_mode");
 $svg.addEventListener("mousedown", (e) => {
     Mode = $mode.elements["options"].value;
@@ -55,7 +57,9 @@ $svg.addEventListener("mousedown", (e) => {
                 break;
         }
         if (ischanged) {
+            $svg_model.setAttributeNS(null, "opacity", `${1.0}`);
             $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
+            $svg_opt.setAttributeNS(null, "opacity", `${0.0}`);
         }
     }
 });
@@ -68,8 +72,9 @@ $svg.addEventListener("mousemove", (e) => {
                 Point1 = OverwritePointY(new Point(Point0.x, e.clientY), PointList);
             }
         } else {
-            Point1 = OverwritePoint(new Point(e.clientX, e.clientY), PointList);
+            Point1 = new Point(e.clientX, e.clientY);
         }
+        Point1 = OverwritePoint(Point1, PointList);
         $guide.setAttributeNS(null, "x2", `${Point1.x}`);
         $guide.setAttributeNS(null, "y2", `${Point1.y}`);
         $guide_length.setAttributeNS(null, "x", `${(Point0.x + Point1.x)/2}`);
@@ -83,7 +88,9 @@ $svg.addEventListener("mouseup", (e) => {
         $guide_length.setAttributeNS(null, "opacity", `${0.0}`);
         $guide_length.innerHTML = ""; 
         if ((Mode === "beam" || (Mode === "load" && Point0.shared)) && Point0.Distance(Point1) > 20) {
+            $svg_model.setAttributeNS(null, "opacity", `${1.0}`);
             $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
+            $svg_opt.setAttributeNS(null, "opacity", `${0.0}`);
             switch (Mode) {
                 case "beam":
                     if (!Point0.shared) {
@@ -120,9 +127,16 @@ $svg.addEventListener("mouseenter", (e) => {
 
 const $btn_analyse = document.getElementById("btn_analyse");
 $btn_analyse.addEventListener("click", (e) => {
-    Solve(PointList, LineList);
-    for (let i : number = 0; i < LineList.length; ++i) {
-        LineList[i].DrawDisplacement($svg_result, 30);
-    }
+    Solve(PointList, LineList, true, $svg_result);
+    $svg_model.setAttributeNS(null, "opacity", `${1.0}`);
     $svg_result.setAttributeNS(null, "opacity", `${1.0}`);
+    $svg_opt.setAttributeNS(null, "opacity", `${0.0}`);
+});
+
+const $btn_optimize = document.getElementById("btn_optimize");
+$btn_optimize.addEventListener("click", (e) => {
+    Optimize(PointList, LineList, $svg_opt);
+    $svg_model.setAttributeNS(null, "opacity", `${0.0}`);
+    $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
+    $svg_opt.setAttributeNS(null, "opacity", `${1.0}`);
 });

@@ -8,6 +8,7 @@ class Point {
     forcey : number;
     ux : number;
     uy : number;
+    ut : number;
     id : number;
     private $fix : SVGElement;
     private $force : SVGElement;
@@ -22,6 +23,7 @@ class Point {
         this.forcey = 0;
         this.ux = 0;
         this.uy = 0;
+        this.ut = 0;
         this.id = -1;
         this.$fix = undefined;
         this.$force = undefined;
