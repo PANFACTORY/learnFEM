@@ -17,16 +17,17 @@ const Solve = (_point : Point[], _line : Line[]) => {
             K[i][j] = 0;
         }
     }
-    for (let i : number = 0; i < _line.length; ++i) {
-        let Ke : number[][] = _line[i].StiffnessMatrix();
-        let g1 : number = _line[i].p1.id, g2 : number = _line[i].p2.id;
-        console.log(i, Ke);
-        K[3*g1 + 0][3*g1 + 0] += Ke[0][0]; K[3*g1 + 0][3*g1 + 1] += Ke[0][1]; K[3*g1 + 0][3*g1 + 2] += Ke[0][2]; K[3*g1 + 0][3*g2 + 0] += Ke[0][3]; K[3*g1 + 0][3*g2 + 1] += Ke[0][4]; K[3*g1 + 0][3*g2 + 2] += Ke[0][5];
-        K[3*g1 + 1][3*g1 + 0] += Ke[1][0]; K[3*g1 + 1][3*g1 + 1] += Ke[1][1]; K[3*g1 + 1][3*g1 + 2] += Ke[1][2]; K[3*g1 + 1][3*g2 + 0] += Ke[1][3]; K[3*g1 + 1][3*g2 + 1] += Ke[1][4]; K[3*g1 + 1][3*g2 + 2] += Ke[1][5];
-        K[3*g1 + 2][3*g1 + 0] += Ke[2][0]; K[3*g1 + 2][3*g1 + 1] += Ke[2][1]; K[3*g1 + 2][3*g1 + 2] += Ke[2][2]; K[3*g1 + 2][3*g2 + 0] += Ke[2][3]; K[3*g1 + 2][3*g2 + 1] += Ke[2][4]; K[3*g1 + 2][3*g2 + 2] += Ke[2][5];
-        K[3*g2 + 0][3*g1 + 0] += Ke[3][0]; K[3*g2 + 0][3*g1 + 1] += Ke[3][1]; K[3*g2 + 0][3*g1 + 2] += Ke[3][2]; K[3*g2 + 0][3*g2 + 0] += Ke[3][3]; K[3*g2 + 0][3*g2 + 1] += Ke[3][4]; K[3*g2 + 0][3*g2 + 2] += Ke[3][5];
-        K[3*g2 + 1][3*g1 + 0] += Ke[4][0]; K[3*g2 + 1][3*g1 + 1] += Ke[4][1]; K[3*g2 + 1][3*g1 + 2] += Ke[4][2]; K[3*g2 + 1][3*g2 + 0] += Ke[4][3]; K[3*g2 + 1][3*g2 + 1] += Ke[4][4]; K[3*g2 + 1][3*g2 + 2] += Ke[4][5];
-        K[3*g2 + 2][3*g1 + 0] += Ke[5][0]; K[3*g2 + 2][3*g1 + 1] += Ke[5][1]; K[3*g2 + 2][3*g1 + 2] += Ke[5][2]; K[3*g2 + 2][3*g2 + 0] += Ke[5][3]; K[3*g2 + 2][3*g2 + 1] += Ke[5][4]; K[3*g2 + 2][3*g2 + 2] += Ke[5][5];
+    for (let k : number = 0; k < _line.length; ++k) {
+        let Ke : number[][] = _line[k].StiffnessMatrix();
+        for (let i : number = 0; i < _line[k].point.length; ++i) {
+            for (let j : number = 0; j < _line[k].point.length; ++j) {
+                let gi : number = _line[k].point[i].id, gj : number = _line[k].point[j].id;
+                console.log(k, Ke);
+                K[3*gi + 0][3*gj + 0] += Ke[3*i + 0][3*j + 0]; K[3*gi + 0][3*gj + 1] += Ke[3*i + 0][3*j + 1]; K[3*gi + 0][3*gj + 2] += Ke[3*i + 0][3*j + 2];
+                K[3*gi + 1][3*gj + 0] += Ke[3*i + 1][3*j + 0]; K[3*gi + 1][3*gj + 1] += Ke[3*i + 1][3*j + 1]; K[3*gi + 1][3*gj + 2] += Ke[3*i + 1][3*j + 2];
+                K[3*gi + 2][3*gj + 0] += Ke[3*i + 2][3*j + 0]; K[3*gi + 2][3*gj + 1] += Ke[3*i + 2][3*j + 1]; K[3*gi + 2][3*gj + 2] += Ke[3*i + 2][3*j + 2];
+            }
+        }
     }
 
     //  Apply boundary condition of fix

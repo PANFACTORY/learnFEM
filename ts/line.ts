@@ -1,18 +1,18 @@
 /// <reference path="point.ts">
 
 class Line {
-    p1 : Point;
-    p2 : Point;
+    point : Point[];
     diameter : number;
     young : number;
     private $line : SVGElement;
     private $deformedline : SVGElement;
 
     constructor(_p1 : Point, _p2 : Point) {
-        this.p1 = _p1;
-        this.p1.shared++;
-        this.p2 = _p2;
-        this.p2.shared++;
+        this.point = [];
+        this.point.push(_p1);
+        this.point[0].shared++;
+        this.point.push(_p2);
+        this.point[1].shared++;
         this.$line = undefined;
         this.$deformedline = undefined;
         this.diameter = 100.0;
@@ -20,8 +20,8 @@ class Line {
     }
 
     Dispose = (_$svg_model, _$svg_result) => {
-        this.p1.shared--;
-        this.p2.shared--;
+        this.point[0].shared--;
+        this.point[1].shared--;
         if (this.$line) {
             _$svg_model.removeChild(this.$line);   
         }
@@ -33,48 +33,44 @@ class Line {
     Draw = (_$svg) => {
         this.$line = document.createElementNS("http://www.w3.org/2000/svg", "g");
         const $line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        $line1.setAttributeNS(null, "x1", `${this.p1.x}`);
-        $line1.setAttributeNS(null, "y1", `${this.p1.y}`);
-        $line1.setAttributeNS(null, "x2", `${this.p2.x}`);
-        $line1.setAttributeNS(null, "y2", `${this.p2.y}`);
+        $line1.setAttributeNS(null, "x1", `${this.point[0].x}`);
+        $line1.setAttributeNS(null, "y1", `${this.point[0].y}`);
+        $line1.setAttributeNS(null, "x2", `${this.point[1].x}`);
+        $line1.setAttributeNS(null, "y2", `${this.point[1].y}`);
         $line1.setAttributeNS(null, "stroke", "black");
         this.$line.appendChild($line1);
-        const $circle1 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        $circle1.setAttributeNS(null, "cx", `${this.p1.x}`);
-        $circle1.setAttributeNS(null, "cy", `${this.p1.y}`);
-        $circle1.setAttributeNS(null, "r", `${5}`);
-        $circle1.setAttributeNS(null, "stroke", "black");
-        this.$line.appendChild($circle1);
-        const $circle2 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        $circle2.setAttributeNS(null, "cx", `${this.p2.x}`);
-        $circle2.setAttributeNS(null, "cy", `${this.p2.y}`);
-        $circle2.setAttributeNS(null, "r", `${5}`);
-        $circle2.setAttributeNS(null, "stroke", "black");
-        this.$line.appendChild($circle2);
+        for (let i : number = 0; i < this.point.length; ++i) {
+            const $circle : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            $circle.setAttributeNS(null, "cx", `${this.point[i].x}`);
+            $circle.setAttributeNS(null, "cy", `${this.point[i].y}`);
+            $circle.setAttributeNS(null, "r", `${5}`);
+            $circle.setAttributeNS(null, "stroke", "black");
+            this.$line.appendChild($circle);
+        }
         const $length : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        $length.setAttributeNS(null, "x", `${(this.p1.x + this.p2.x)/2}`);
-        $length.setAttributeNS(null, "y", `${(this.p1.y + this.p2.y)/2}`);
+        $length.setAttributeNS(null, "x", `${(this.point[0].x + this.point[1].x)/2}`);
+        $length.setAttributeNS(null, "y", `${(this.point[0].y + this.point[1].y)/2}`);
         $length.setAttributeNS(null, "style", "user-select: none");
-        $length.innerHTML = `${this.p1.Distance(this.p2).toFixed()}`;
+        $length.innerHTML = `${this.point[0].Distance(this.point[1]).toFixed()}`;
         this.$line.appendChild($length);
         _$svg.appendChild(this.$line);
     }
 
     IsHit = (_p : Point) : boolean => {
-        var a = this.p2.y - this.p1.y;
-        var b = this.p1.x - this.p2.x;
-        var c = this.p2.x*this.p1.y - this.p1.x*this.p2.y;
+        var a = this.point[1].y - this.point[0].y;
+        var b = this.point[0].x - this.point[1].x;
+        var c = this.point[1].x*this.point[0].y - this.point[0].x*this.point[1].y;
         var d0 = Math.abs(a*_p.x + b*_p.y + c)/Math.sqrt(a**2 + b**2);
-        var d1 = this.p1.Distance(_p);
-        var d2 = this.p2.Distance(_p);
-        var d3 = this.p1.Distance(this.p2);
+        var d1 = this.point[0].Distance(_p);
+        var d2 = this.point[1].Distance(_p);
+        var d3 = this.point[0].Distance(this.point[1]);
         return d0 < 5 && d1 < d3 + 5 && d2 < d3 + 5;
     }
 
     StiffnessMatrix = () : number[][] => {
-        const A : number = 0.25*Math.PI*this.diameter**2, I : number = Math.PI*this.diameter**4/64, L : number = this.p1.Distance(this.p2);
+        const A : number = 0.25*Math.PI*this.diameter**2, I : number = Math.PI*this.diameter**4/64, L : number = this.point[0].Distance(this.point[1]);
         let k1 : number = A*this.young/L, k2 : number = 12*this.young*I/(L**3), k3 : number = 6*this.young*I/(L**2), k4 : number = 4*this.young*I/L, k5 : number = 2*this.young*I/L;
-        let c : number = (this.p2.x - this.p1.x)/L, s : number = (this.p2.y - this.p1.y)/L;
+        let c : number = (this.point[1].x - this.point[0].x)/L, s : number = (this.point[1].y - this.point[0].y)/L;
         let Ke : number[][] = new Array(6);
         for (let i : number = 0; i < 6; ++i) {
             Ke[i] = new Array(6);
@@ -94,9 +90,9 @@ class Line {
             this.$deformedline.setAttributeNS(null, "stroke", "red");
             _$svg.appendChild(this.$deformedline);
         }
-        this.$deformedline.setAttributeNS(null, "x1", `${this.p1.x + _scale*this.p1.ux}`);
-        this.$deformedline.setAttributeNS(null, "y1", `${this.p1.y + _scale*this.p1.uy}`);
-        this.$deformedline.setAttributeNS(null, "x2", `${this.p2.x + _scale*this.p2.ux}`);
-        this.$deformedline.setAttributeNS(null, "y2", `${this.p2.y + _scale*this.p2.uy}`);
+        this.$deformedline.setAttributeNS(null, "x1", `${this.point[0].x + _scale*this.point[0].ux}`);
+        this.$deformedline.setAttributeNS(null, "y1", `${this.point[0].y + _scale*this.point[0].uy}`);
+        this.$deformedline.setAttributeNS(null, "x2", `${this.point[1].x + _scale*this.point[1].ux}`);
+        this.$deformedline.setAttributeNS(null, "y2", `${this.point[1].y + _scale*this.point[1].uy}`);
     }
 }

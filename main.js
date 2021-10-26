@@ -3,8 +3,8 @@ var Line = /** @class */ (function () {
     function Line(_p1, _p2) {
         var _this = this;
         this.Dispose = function (_$svg_model, _$svg_result) {
-            _this.p1.shared--;
-            _this.p2.shared--;
+            _this.point[0].shared--;
+            _this.point[1].shared--;
             if (_this.$line) {
                 _$svg_model.removeChild(_this.$line);
             }
@@ -15,46 +15,42 @@ var Line = /** @class */ (function () {
         this.Draw = function (_$svg) {
             _this.$line = document.createElementNS("http://www.w3.org/2000/svg", "g");
             var $line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            $line1.setAttributeNS(null, "x1", "" + _this.p1.x);
-            $line1.setAttributeNS(null, "y1", "" + _this.p1.y);
-            $line1.setAttributeNS(null, "x2", "" + _this.p2.x);
-            $line1.setAttributeNS(null, "y2", "" + _this.p2.y);
+            $line1.setAttributeNS(null, "x1", "" + _this.point[0].x);
+            $line1.setAttributeNS(null, "y1", "" + _this.point[0].y);
+            $line1.setAttributeNS(null, "x2", "" + _this.point[1].x);
+            $line1.setAttributeNS(null, "y2", "" + _this.point[1].y);
             $line1.setAttributeNS(null, "stroke", "black");
             _this.$line.appendChild($line1);
-            var $circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            $circle1.setAttributeNS(null, "cx", "" + _this.p1.x);
-            $circle1.setAttributeNS(null, "cy", "" + _this.p1.y);
-            $circle1.setAttributeNS(null, "r", "" + 5);
-            $circle1.setAttributeNS(null, "stroke", "black");
-            _this.$line.appendChild($circle1);
-            var $circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            $circle2.setAttributeNS(null, "cx", "" + _this.p2.x);
-            $circle2.setAttributeNS(null, "cy", "" + _this.p2.y);
-            $circle2.setAttributeNS(null, "r", "" + 5);
-            $circle2.setAttributeNS(null, "stroke", "black");
-            _this.$line.appendChild($circle2);
+            for (var i = 0; i < _this.point.length; ++i) {
+                var $circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                $circle.setAttributeNS(null, "cx", "" + _this.point[i].x);
+                $circle.setAttributeNS(null, "cy", "" + _this.point[i].y);
+                $circle.setAttributeNS(null, "r", "" + 5);
+                $circle.setAttributeNS(null, "stroke", "black");
+                _this.$line.appendChild($circle);
+            }
             var $length = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            $length.setAttributeNS(null, "x", "" + (_this.p1.x + _this.p2.x) / 2);
-            $length.setAttributeNS(null, "y", "" + (_this.p1.y + _this.p2.y) / 2);
+            $length.setAttributeNS(null, "x", "" + (_this.point[0].x + _this.point[1].x) / 2);
+            $length.setAttributeNS(null, "y", "" + (_this.point[0].y + _this.point[1].y) / 2);
             $length.setAttributeNS(null, "style", "user-select: none");
-            $length.innerHTML = "" + _this.p1.Distance(_this.p2).toFixed();
+            $length.innerHTML = "" + _this.point[0].Distance(_this.point[1]).toFixed();
             _this.$line.appendChild($length);
             _$svg.appendChild(_this.$line);
         };
         this.IsHit = function (_p) {
-            var a = _this.p2.y - _this.p1.y;
-            var b = _this.p1.x - _this.p2.x;
-            var c = _this.p2.x * _this.p1.y - _this.p1.x * _this.p2.y;
+            var a = _this.point[1].y - _this.point[0].y;
+            var b = _this.point[0].x - _this.point[1].x;
+            var c = _this.point[1].x * _this.point[0].y - _this.point[0].x * _this.point[1].y;
             var d0 = Math.abs(a * _p.x + b * _p.y + c) / Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
-            var d1 = _this.p1.Distance(_p);
-            var d2 = _this.p2.Distance(_p);
-            var d3 = _this.p1.Distance(_this.p2);
+            var d1 = _this.point[0].Distance(_p);
+            var d2 = _this.point[1].Distance(_p);
+            var d3 = _this.point[0].Distance(_this.point[1]);
             return d0 < 5 && d1 < d3 + 5 && d2 < d3 + 5;
         };
         this.StiffnessMatrix = function () {
-            var A = 0.25 * Math.PI * Math.pow(_this.diameter, 2), I = Math.PI * Math.pow(_this.diameter, 4) / 64, L = _this.p1.Distance(_this.p2);
+            var A = 0.25 * Math.PI * Math.pow(_this.diameter, 2), I = Math.PI * Math.pow(_this.diameter, 4) / 64, L = _this.point[0].Distance(_this.point[1]);
             var k1 = A * _this.young / L, k2 = 12 * _this.young * I / (Math.pow(L, 3)), k3 = 6 * _this.young * I / (Math.pow(L, 2)), k4 = 4 * _this.young * I / L, k5 = 2 * _this.young * I / L;
-            var c = (_this.p2.x - _this.p1.x) / L, s = (_this.p2.y - _this.p1.y) / L;
+            var c = (_this.point[1].x - _this.point[0].x) / L, s = (_this.point[1].y - _this.point[0].y) / L;
             var Ke = new Array(6);
             for (var i = 0; i < 6; ++i) {
                 Ke[i] = new Array(6);
@@ -103,15 +99,16 @@ var Line = /** @class */ (function () {
                 _this.$deformedline.setAttributeNS(null, "stroke", "red");
                 _$svg.appendChild(_this.$deformedline);
             }
-            _this.$deformedline.setAttributeNS(null, "x1", "" + (_this.p1.x + _scale * _this.p1.ux));
-            _this.$deformedline.setAttributeNS(null, "y1", "" + (_this.p1.y + _scale * _this.p1.uy));
-            _this.$deformedline.setAttributeNS(null, "x2", "" + (_this.p2.x + _scale * _this.p2.ux));
-            _this.$deformedline.setAttributeNS(null, "y2", "" + (_this.p2.y + _scale * _this.p2.uy));
+            _this.$deformedline.setAttributeNS(null, "x1", "" + (_this.point[0].x + _scale * _this.point[0].ux));
+            _this.$deformedline.setAttributeNS(null, "y1", "" + (_this.point[0].y + _scale * _this.point[0].uy));
+            _this.$deformedline.setAttributeNS(null, "x2", "" + (_this.point[1].x + _scale * _this.point[1].ux));
+            _this.$deformedline.setAttributeNS(null, "y2", "" + (_this.point[1].y + _scale * _this.point[1].uy));
         };
-        this.p1 = _p1;
-        this.p1.shared++;
-        this.p2 = _p2;
-        this.p2.shared++;
+        this.point = [];
+        this.point.push(_p1);
+        this.point[0].shared++;
+        this.point.push(_p2);
+        this.point[1].shared++;
         this.$line = undefined;
         this.$deformedline = undefined;
         this.diameter = 100.0;
@@ -388,46 +385,23 @@ var Solve = function (_point, _line) {
             K[i][j] = 0;
         }
     }
-    for (var i = 0; i < _line.length; ++i) {
-        var Ke = _line[i].StiffnessMatrix();
-        var g1 = _line[i].p1.id, g2 = _line[i].p2.id;
-        console.log(i, Ke);
-        K[3 * g1 + 0][3 * g1 + 0] += Ke[0][0];
-        K[3 * g1 + 0][3 * g1 + 1] += Ke[0][1];
-        K[3 * g1 + 0][3 * g1 + 2] += Ke[0][2];
-        K[3 * g1 + 0][3 * g2 + 0] += Ke[0][3];
-        K[3 * g1 + 0][3 * g2 + 1] += Ke[0][4];
-        K[3 * g1 + 0][3 * g2 + 2] += Ke[0][5];
-        K[3 * g1 + 1][3 * g1 + 0] += Ke[1][0];
-        K[3 * g1 + 1][3 * g1 + 1] += Ke[1][1];
-        K[3 * g1 + 1][3 * g1 + 2] += Ke[1][2];
-        K[3 * g1 + 1][3 * g2 + 0] += Ke[1][3];
-        K[3 * g1 + 1][3 * g2 + 1] += Ke[1][4];
-        K[3 * g1 + 1][3 * g2 + 2] += Ke[1][5];
-        K[3 * g1 + 2][3 * g1 + 0] += Ke[2][0];
-        K[3 * g1 + 2][3 * g1 + 1] += Ke[2][1];
-        K[3 * g1 + 2][3 * g1 + 2] += Ke[2][2];
-        K[3 * g1 + 2][3 * g2 + 0] += Ke[2][3];
-        K[3 * g1 + 2][3 * g2 + 1] += Ke[2][4];
-        K[3 * g1 + 2][3 * g2 + 2] += Ke[2][5];
-        K[3 * g2 + 0][3 * g1 + 0] += Ke[3][0];
-        K[3 * g2 + 0][3 * g1 + 1] += Ke[3][1];
-        K[3 * g2 + 0][3 * g1 + 2] += Ke[3][2];
-        K[3 * g2 + 0][3 * g2 + 0] += Ke[3][3];
-        K[3 * g2 + 0][3 * g2 + 1] += Ke[3][4];
-        K[3 * g2 + 0][3 * g2 + 2] += Ke[3][5];
-        K[3 * g2 + 1][3 * g1 + 0] += Ke[4][0];
-        K[3 * g2 + 1][3 * g1 + 1] += Ke[4][1];
-        K[3 * g2 + 1][3 * g1 + 2] += Ke[4][2];
-        K[3 * g2 + 1][3 * g2 + 0] += Ke[4][3];
-        K[3 * g2 + 1][3 * g2 + 1] += Ke[4][4];
-        K[3 * g2 + 1][3 * g2 + 2] += Ke[4][5];
-        K[3 * g2 + 2][3 * g1 + 0] += Ke[5][0];
-        K[3 * g2 + 2][3 * g1 + 1] += Ke[5][1];
-        K[3 * g2 + 2][3 * g1 + 2] += Ke[5][2];
-        K[3 * g2 + 2][3 * g2 + 0] += Ke[5][3];
-        K[3 * g2 + 2][3 * g2 + 1] += Ke[5][4];
-        K[3 * g2 + 2][3 * g2 + 2] += Ke[5][5];
+    for (var k = 0; k < _line.length; ++k) {
+        var Ke = _line[k].StiffnessMatrix();
+        for (var i = 0; i < _line[k].point.length; ++i) {
+            for (var j = 0; j < _line[k].point.length; ++j) {
+                var gi = _line[k].point[i].id, gj = _line[k].point[j].id;
+                console.log(k, Ke);
+                K[3 * gi + 0][3 * gj + 0] += Ke[3 * i + 0][3 * j + 0];
+                K[3 * gi + 0][3 * gj + 1] += Ke[3 * i + 0][3 * j + 1];
+                K[3 * gi + 0][3 * gj + 2] += Ke[3 * i + 0][3 * j + 2];
+                K[3 * gi + 1][3 * gj + 0] += Ke[3 * i + 1][3 * j + 0];
+                K[3 * gi + 1][3 * gj + 1] += Ke[3 * i + 1][3 * j + 1];
+                K[3 * gi + 1][3 * gj + 2] += Ke[3 * i + 1][3 * j + 2];
+                K[3 * gi + 2][3 * gj + 0] += Ke[3 * i + 2][3 * j + 0];
+                K[3 * gi + 2][3 * gj + 1] += Ke[3 * i + 2][3 * j + 1];
+                K[3 * gi + 2][3 * gj + 2] += Ke[3 * i + 2][3 * j + 2];
+            }
+        }
     }
     //  Apply boundary condition of fix
     console.log("Apply boundary condition of fix");
