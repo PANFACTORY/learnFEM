@@ -569,23 +569,30 @@ var Gauss = function (_A, _b) {
 /// <reference path="solver.ts">
 var Optimize = function (_point, _line, _$svg) {
     //  Parameters
-    var amax = 10, amin = 1e-1;
-    var itrmax = 100, iota = 0.5, eps = 1e-5, movelimit = 0.05, weightlimit = 0.5;
+    var amax = 100, smax = 1, smin = 1e-2;
+    var itrmax = 100, iota = 0.5, eps = 1e-5, movelimit = 0.05, weightlimit = 0.5, p = 3;
+    var s = new Array(_line.length), snew = new Array(_line.length);
+    for (var k = 0; k < _line.length; ++k) {
+        s[k] = 0.5;
+        _line[k].area = amax * Math.pow(s[k], p);
+    }
     //  Initialize
     var g0 = 0;
     for (var k = 0; k < _line.length; ++k) {
-        _line[k].area = amax;
-        g0 += _line[k].area * _line[k].point[0].Distance(_line[k].point[1]);
+        g0 += amax * s[k] * _line[k].point[0].Distance(_line[k].point[1]);
     }
     //  Optimization loop
-    var dnew = new Array(_line.length);
     var dfdd = new Array(_line.length), dgdd = new Array(_line.length);
     for (var itr = 0; itr < itrmax; ++itr) {
+        //  Set area from design variable
+        for (var k = 0; k < _line.length; ++k) {
+            _line[k].area = amax * Math.pow(s[k], p);
+        }
         //  Get constraint function value and sensitivity
         var gnow = -1;
         for (var k = 0; k < _line.length; ++k) {
-            gnow += _line[k].area * _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
-            dgdd[k] = _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
+            gnow += amax * s[k] * _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
+            dgdd[k] = amax * _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
         }
         //  Get objective function value
         var fnow = 0;
@@ -606,23 +613,24 @@ var Optimize = function (_point, _line, _$svg) {
                         + uti * Ke[3 * i + 2][3 * j + 0] * uxj + uti * Ke[3 * i + 2][3 * j + 1] * uyj + uti * Ke[3 * i + 2][3 * j + 2] * utj;
                 }
             }
+            dfdd[k] *= amax * p * Math.pow(s[k], (p - 1));
         }
         //  Update design variable
         var lambda0 = 0, lambda1 = 1e4, lambda = void 0;
         while (lambda1 - lambda0 > eps * (lambda1 + lambda0)) {
             lambda = 0.5 * (lambda1 + lambda0);
             for (var k = 0; k < _line.length; ++k) {
-                dnew[k] = Math.pow(-dfdd[k] / (dgdd[k] * lambda), iota) * _line[k].area;
-                if (dnew[k] < Math.max(amin, (1.0 - movelimit) * _line[k].area)) {
-                    dnew[k] = Math.max(amin, (1.0 - movelimit) * _line[k].area);
+                snew[k] = Math.pow(-dfdd[k] / (dgdd[k] * lambda), iota) * s[k];
+                if (snew[k] < Math.max(smin, (1.0 - movelimit) * s[k])) {
+                    snew[k] = Math.max(smin, (1.0 - movelimit) * s[k]);
                 }
-                else if (dnew[k] > Math.min(amax, (1.0 + movelimit) * _line[k].area)) {
-                    dnew[k] = Math.min(amax, (1.0 + movelimit) * _line[k].area);
+                else if (snew[k] > Math.min(smax, (1.0 + movelimit) * s[k])) {
+                    snew[k] = Math.min(smax, (1.0 + movelimit) * s[k]);
                 }
             }
             var gnew = 0;
             for (var k = 0; k < _line.length; ++k) {
-                gnew += dnew[k] * _line[k].point[0].Distance(_line[k].point[1]);
+                gnew += amax * snew[k] * _line[k].point[0].Distance(_line[k].point[1]);
             }
             if (gnew > weightlimit * g0) {
                 lambda0 = lambda;
@@ -632,7 +640,7 @@ var Optimize = function (_point, _line, _$svg) {
             }
         }
         for (var k = 0; k < _line.length; ++k) {
-            _line[k].area = dnew[k];
+            s[k] = snew[k];
         }
         console.log(itr, fnow, gnow);
         //console.log("itr", itr, "lambda", lambda, "g", gnow, "dfdd", dfdd, "dgdd", dgdd, "dnew", dnew);
@@ -648,7 +656,7 @@ var Optimize = function (_point, _line, _$svg) {
         $line.setAttributeNS(null, "x2", "" + _line[k].point[1].x);
         $line.setAttributeNS(null, "y2", "" + _line[k].point[1].y);
         $line.setAttributeNS(null, "stroke", "black");
-        $line.setAttributeNS(null, "stroke-width", _line[k].area + "px");
+        $line.setAttributeNS(null, "stroke-width", Math.sqrt(_line[k].area) + "px");
         _$svg.appendChild($line);
     }
 };
