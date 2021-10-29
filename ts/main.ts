@@ -16,6 +16,17 @@ const $svg_bc = document.getElementById("svg_bc");
 const $svg_result = document.getElementById("svg_result");
 const $svg_opt = document.getElementById("svg_opt");
 const $mode : HTMLFormElement = <HTMLFormElement>document.getElementById("form_mode");
+
+const load = () => {
+    $svg.setAttributeNS(null, "width", `${0.95*document.documentElement.clientWidth}`);
+    $svg.setAttributeNS(null, "height", `${0.95*(document.documentElement.clientHeight - document.getElementById("row_buttons").clientHeight)}`);
+    const $grid = document.getElementById("grid");
+    $grid.setAttributeNS(null, "width", `${0.95*document.documentElement.clientWidth}`);
+    $grid.setAttributeNS(null, "height", `${0.95*(document.documentElement.clientHeight - document.getElementById("row_buttons").clientHeight)}`);
+}
+load();
+window.onresize = load;
+
 $svg.addEventListener("mousedown", (e) => {
     Mode = $mode.elements["options"].value;
     if (e.buttons === 1) {

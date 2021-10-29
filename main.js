@@ -167,6 +167,15 @@ var $svg_bc = document.getElementById("svg_bc");
 var $svg_result = document.getElementById("svg_result");
 var $svg_opt = document.getElementById("svg_opt");
 var $mode = document.getElementById("form_mode");
+var load = function () {
+    $svg.setAttributeNS(null, "width", "" + 0.95 * document.documentElement.clientWidth);
+    $svg.setAttributeNS(null, "height", "" + 0.95 * (document.documentElement.clientHeight - document.getElementById("row_buttons").clientHeight));
+    var $grid = document.getElementById("grid");
+    $grid.setAttributeNS(null, "width", "" + 0.95 * document.documentElement.clientWidth);
+    $grid.setAttributeNS(null, "height", "" + 0.95 * (document.documentElement.clientHeight - document.getElementById("row_buttons").clientHeight));
+};
+load();
+window.onresize = load;
 $svg.addEventListener("mousedown", function (e) {
     Mode = $mode.elements["options"].value;
     if (e.buttons === 1) {

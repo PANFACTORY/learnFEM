@@ -9,39 +9,44 @@
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <svg id="svg" width="480" height="480">
-                <rect x="0" y="0" width="480" height="480" stroke="black" fill="none" stroke-width="1" />
-                <line id="guide" x1="0" y1="0" x2="0" y2="0" stroke="black" stroke-dasharray="4" stroke-opacity="0" />
-                <text id="guide_length" x="0" y="0" stroke="black" opacity="0" style="user-select: none" />
-                <g id="svg_model"/>
-                <g id="svg_bc"/>
-                <g id="svg_result" opacity="0"/>
-                <g id="svg_opt" opacity="0"/>
-            </svg>
+    <div class="container-fluid p-0 m-0">
+        <div class="row p-0 m-0">
+            <div class="col p-0 m-0">
+                <svg id="svg">
+                    <rect id="grid" x="0" y="0" width="0" height="0" stroke="black" fill="none" stroke-width="1" />
+                    <line id="guide" x1="0" y1="0" x2="0" y2="0" stroke="black" stroke-dasharray="4" stroke-opacity="0" />
+                    <text id="guide_length" x="0" y="0" stroke="black" opacity="0" style="user-select: none" />
+                    <g id="svg_model"/>
+                    <g id="svg_bc"/>
+                    <g id="svg_result" opacity="0"/>
+                    <g id="svg_opt" opacity="0"/>
+                </svg>
+            </div>
         </div>
-
-        <div class="row">
-            <form id="form_mode">
-                <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-outline-dark active">
-                        <input id="btn_beam" type="radio" name="options" autocomplete="off" value="beam" checked>Beam
-                    </label>
-                    <label class="btn btn-outline-dark">
-                        <input id="btn_fix" type="radio" name="options" autocomplete="off" value="fix">Fix
-                    </label>
-                    <label class="btn btn-outline-dark">
-                        <input id="btn_load" type="radio" name="options" autocomplete="off" value="load">Load
-                    </label>
-                    <label class="btn btn-outline-danger">
-                        <input id="btn_delete" type="radio" name="options" autocomplete="off" value="delete">Delete
-                    </label>
+        <div id="row_buttons" class="row p-0 m-0">
+            <div class="col p-0 m-0">
+                <div class="form-row p-0 m-0">
+                    <form id="form_mode">
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-outline-dark active">
+                                <input id="btn_beam" type="radio" name="options" autocomplete="off" value="beam" checked>Beam
+                            </label>
+                            <label class="btn btn-outline-dark">
+                                <input id="btn_fix" type="radio" name="options" autocomplete="off" value="fix">Fix
+                            </label>
+                            <label class="btn btn-outline-dark">
+                                <input id="btn_load" type="radio" name="options" autocomplete="off" value="load">Load
+                            </label>
+                            <label class="btn btn-outline-danger">
+                                <input id="btn_delete" type="radio" name="options" autocomplete="off" value="delete">Delete
+                            </label>
+                        </div>
+                    </form>
+        
+                    <button id="btn_analyse" type="button" class="btn btn-outline-success">Analyse</button>
+                    <button id="btn_optimize" type="button" class="btn btn-outline-success">Optimize</button>
                 </div>
-            </form>
-
-            <button id="btn_analyse" type="button" class="btn btn-outline-success">Analyse</button>
-            <button id="btn_optimize" type="button" class="btn btn-outline-success">Optimize</button>
+            </div>
         </div>
     </div>
 </body>
