@@ -47,11 +47,11 @@ class Point {
         if (!this.isfixed) {
             this.$fix = document.createElementNS("http://www.w3.org/2000/svg", "g");
             const $triangle1 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            $triangle1.setAttributeNS(null, "d", `M${this.x} ${this.y} L${this.x - 10} ${this.y + 7} L${this.x - 10} ${this.y - 7} Z`);
+            $triangle1.setAttributeNS(null, "d", `M${this.x} ${this.y} L${this.x - 30} ${this.y + 21} L${this.x - 30} ${this.y - 21} Z`);
             $triangle1.setAttributeNS(null, "fill", "blue");
             this.$fix.appendChild($triangle1);
             const $triangle2 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            $triangle2.setAttributeNS(null, "d", `M${this.x} ${this.y} L${this.x - 7} ${this.y + 10} L${this.x + 7} ${this.y + 10} Z`);
+            $triangle2.setAttributeNS(null, "d", `M${this.x} ${this.y} L${this.x - 21} ${this.y + 30} L${this.x + 21} ${this.y + 30} Z`);
             $triangle2.setAttributeNS(null, "fill", "blue");
             this.$fix.appendChild($triangle2);
             _$svg.appendChild(this.$fix);
@@ -77,22 +77,25 @@ class Point {
             $line1.setAttributeNS(null, "x2", `${_p.x}`);
             $line1.setAttributeNS(null, "y2", `${_p.y}`);
             $line1.setAttributeNS(null, "stroke", "red");
+            $line1.setAttributeNS(null, "stroke-width", "5");
             this.$force.appendChild($line1);
             let d : number = Math.sqrt((_p.x - this.x)**2 + (_p.y - this.y)**2);
             let c : number = (_p.x - this.x)/d, s : number = (_p.y - this.y)/d;
             const $line2 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
             $line2.setAttributeNS(null, "x1", `${_p.x}`);
             $line2.setAttributeNS(null, "y1", `${_p.y}`);
-            $line2.setAttributeNS(null, "x2", `${_p.x + 10*(-c + 0.5*s)}`);
-            $line2.setAttributeNS(null, "y2", `${_p.y + 10*(-s - 0.5*c)}`);
+            $line2.setAttributeNS(null, "x2", `${_p.x + 50*(-c + 0.5*s)}`);
+            $line2.setAttributeNS(null, "y2", `${_p.y + 50*(-s - 0.5*c)}`);
             $line2.setAttributeNS(null, "stroke", "red");
+            $line2.setAttributeNS(null, "stroke-width", "5");
             this.$force.appendChild($line2);
             const $line3 : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
             $line3.setAttributeNS(null, "x1", `${_p.x}`);
             $line3.setAttributeNS(null, "y1", `${_p.y}`);
-            $line3.setAttributeNS(null, "x2", `${_p.x + 10*(-c - 0.5*s)}`);
-            $line3.setAttributeNS(null, "y2", `${_p.y + 10*(-s + 0.5*c)}`);
+            $line3.setAttributeNS(null, "x2", `${_p.x + 50*(-c - 0.5*s)}`);
+            $line3.setAttributeNS(null, "y2", `${_p.y + 50*(-s + 0.5*c)}`);
             $line3.setAttributeNS(null, "stroke", "red");
+            $line3.setAttributeNS(null, "stroke-width", "5");
             this.$force.appendChild($line3);
             _$svg.appendChild(this.$force);
             this.isforced = true;
@@ -114,7 +117,7 @@ class Point {
 const OverwritePoint = (_point : Point, _pointlist : Point[]) : Point => {
     let point = _point;
     for (let i : number = 0; i < _pointlist.length; ++i) {
-        if (_point.Distance(_pointlist[i]) < 5) {
+        if (_point.Distance(_pointlist[i]) < 20) {
             point = _pointlist[i];
         }
     }
@@ -124,7 +127,7 @@ const OverwritePoint = (_point : Point, _pointlist : Point[]) : Point => {
 const OverwritePointX = (_point : Point, _pointlist : Point[]) : Point => {
     let point = _point;
     for (let i : number = 0; i < _pointlist.length; ++i) {
-        if (Math.abs(point.x - _pointlist[i].x) < 5) {
+        if (Math.abs(point.x - _pointlist[i].x) < 20) {
             point.x = _pointlist[i].x;
         }
     }
@@ -134,7 +137,7 @@ const OverwritePointX = (_point : Point, _pointlist : Point[]) : Point => {
 const OverwritePointY = (_point : Point, _pointlist : Point[]) : Point => {
     let point = _point;
     for (let i : number = 0; i < _pointlist.length; ++i) {
-        if (Math.abs(point.y - _pointlist[i].y) < 5) {
+        if (Math.abs(point.y - _pointlist[i].y) < 20) {
             point.y = _pointlist[i].y;
         }
     }

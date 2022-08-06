@@ -1,4 +1,276 @@
 /// <reference path="point.ts">
+/// <reference path="line.ts">
+/// <reference path="solver.ts">
+/// <reference path="grandstructure.ts">
+var PointList = [];
+var Point0, Point1;
+var LineList = [];
+var Mode = "beam";
+var $svg = document.getElementById("svg");
+var $guide = document.getElementById("guide");
+var $guide_length = document.getElementById("guide_length");
+var $svg_model = document.getElementById("svg_model");
+var $svg_bc = document.getElementById("svg_bc");
+var $svg_result = document.getElementById("svg_result");
+var $svg_opt = document.getElementById("svg_opt");
+var $mode = document.getElementById("form_mode");
+var load = function () {
+    $svg.setAttributeNS(null, "width", "" + 0.95 * document.documentElement.clientWidth);
+    $svg.setAttributeNS(null, "height", "" + 0.95 * (document.documentElement.clientHeight - document.getElementById("row_buttons").clientHeight));
+    var $grid = document.getElementById("grid");
+    $grid.setAttributeNS(null, "width", "" + 0.95 * document.documentElement.clientWidth);
+    $grid.setAttributeNS(null, "height", "" + 0.95 * (document.documentElement.clientHeight - document.getElementById("row_buttons").clientHeight));
+};
+load();
+window.onresize = load;
+var mousedownEvent = function (clientX, clientY) {
+    Point0 = new Point(clientX, clientY);
+    var ischanged = false;
+    switch (Mode) {
+        case "beam":
+        case "load":
+            Point0 = OverwritePoint(Point0, PointList);
+            $guide.setAttributeNS(null, "x1", "" + Point0.x);
+            $guide.setAttributeNS(null, "y1", "" + Point0.y);
+            $guide.setAttributeNS(null, "x2", "" + Point0.x);
+            $guide.setAttributeNS(null, "y2", "" + Point0.y);
+            $guide.setAttributeNS(null, "stroke-width", "3");
+            $guide.setAttributeNS(null, "stroke-opacity", "" + 1.0);
+            $guide_length.setAttributeNS(null, "opacity", "" + 1.0);
+            break;
+        case "fix":
+            for (var i = PointList.length - 1; i >= 0; --i) {
+                if (PointList[i].Distance(Point0) < 10) {
+                    PointList[i].Fix($svg_bc);
+                    ischanged = true;
+                }
+            }
+            break;
+        case "delete":
+            for (var i = LineList.length - 1; i >= 0; --i) {
+                if (LineList[i].IsHit(new Point(clientX, clientY))) {
+                    LineList[i].Dispose($svg_model, $svg_result);
+                    LineList.splice(i, 1);
+                    ischanged = true;
+                }
+            }
+            for (var i = PointList.length - 1; i >= 0; --i) {
+                if (PointList[i].shared === 0) {
+                    PointList[i].Dispose($svg_bc);
+                    PointList.splice(i, 1);
+                }
+            }
+            break;
+    }
+    if (ischanged) {
+        $svg_model.setAttributeNS(null, "opacity", "" + 1.0);
+        $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
+        $svg_opt.setAttributeNS(null, "opacity", "" + 0.0);
+    }
+};
+var mousemoveEvent = function (clientX, clientY, shiftKey) {
+    if (Mode === "beam" || (Mode === "load" && Point0.shared && !Point0.isforced)) {
+        if (shiftKey) {
+            if (Math.abs(Point0.x - clientX) > Math.abs(Point0.y - clientY)) {
+                Point1 = OverwritePointX(new Point(clientX, Point0.y), PointList);
+            }
+            else {
+                Point1 = OverwritePointY(new Point(Point0.x, clientY), PointList);
+            }
+        }
+        else {
+            Point1 = new Point(clientX, clientY);
+        }
+        Point1 = OverwritePoint(Point1, PointList);
+        $guide.setAttributeNS(null, "x2", "" + Point1.x);
+        $guide.setAttributeNS(null, "y2", "" + Point1.y);
+        $guide_length.setAttributeNS(null, "x", "" + (Point0.x + Point1.x) / 2);
+        $guide_length.setAttributeNS(null, "y", "" + (Point0.y + Point1.y) / 2);
+        $guide_length.innerHTML = "" + Point0.Distance(Point1).toFixed();
+    }
+};
+var mouseupEvent = function () {
+    $guide.setAttributeNS(null, "stroke-opacity", "" + 0.0);
+    $guide_length.setAttributeNS(null, "opacity", "" + 0.0);
+    $guide_length.innerHTML = "";
+    if ((Mode === "beam" || (Mode === "load" && Point0.shared)) && Point0.Distance(Point1) > 20) {
+        $svg_model.setAttributeNS(null, "opacity", "" + 1.0);
+        $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
+        $svg_opt.setAttributeNS(null, "opacity", "" + 0.0);
+        switch (Mode) {
+            case "beam":
+                if (!Point0.shared) {
+                    PointList.push(Point0);
+                }
+                if (!Point1.shared) {
+                    PointList.push(Point1);
+                }
+                var line = new Line(Point0, Point1);
+                LineList.push(line);
+                line.Draw($svg_model);
+                console.log(PointList, LineList);
+                break;
+            case "load":
+                Point0.Force($svg_bc, Point1);
+                break;
+        }
+    }
+};
+var mouseleaveEvent = function (e) {
+    if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
+        $guide.setAttributeNS(null, "stroke-opacity", "" + 0.0);
+        $guide_length.setAttributeNS(null, "opacity", "" + 0.0);
+        $guide_length.innerHTML = "";
+    }
+};
+var mouseenterEvent = function (e) {
+    if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
+        $guide.setAttributeNS(null, "stroke-opacity", "" + 1.0);
+        $guide_length.setAttributeNS(null, "opacity", "" + 1.0);
+    }
+};
+//  For PC
+$svg.addEventListener("mousedown", function (e) {
+    Mode = $mode.elements["options"].value;
+    if (e.buttons === 1) {
+        mousedownEvent(e.clientX, e.clientY);
+    }
+});
+$svg.addEventListener("mousemove", function (e) {
+    if (e.buttons === 1) {
+        mousemoveEvent(e.clientX, e.clientY, e.shiftKey);
+    }
+});
+$svg.addEventListener("mouseup", function (e) {
+    if (e.button === 0) {
+        mouseupEvent();
+    }
+});
+$svg.addEventListener("mouseleave", mouseleaveEvent);
+$svg.addEventListener("mouseenter", mouseenterEvent);
+// For Mobile phone
+$svg.addEventListener("touchstart", function (e) {
+    Mode = $mode.elements["options"].value;
+    mousedownEvent(e.touches[0].clientX, e.touches[0].clientY);
+});
+$svg.addEventListener("touchmove", function (e) {
+    e.preventDefault();
+    mousemoveEvent(e.touches[0].clientX, e.touches[0].clientY, false);
+});
+$svg.addEventListener("touchend", function (e) {
+    mouseupEvent();
+});
+var $btn_analyse = document.getElementById("btn_analyse");
+$btn_analyse.addEventListener("click", function (e) {
+    Solve(PointList, LineList, true, $svg_result);
+    $svg_model.setAttributeNS(null, "opacity", "" + 1.0);
+    $svg_result.setAttributeNS(null, "opacity", "" + 1.0);
+    $svg_opt.setAttributeNS(null, "opacity", "" + 0.0);
+});
+var $btn_optimize = document.getElementById("btn_optimize");
+$btn_optimize.addEventListener("click", function (e) {
+    Optimize(PointList, LineList, $svg_opt);
+    $svg_model.setAttributeNS(null, "opacity", "" + 0.0);
+    $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
+    $svg_opt.setAttributeNS(null, "opacity", "" + 1.0);
+});
+/// <reference path="point.ts">
+/// <reference path="line.ts">
+/// <reference path="solver.ts">
+var Optimize = function (_point, _line, _$svg) {
+    //  Parameters
+    var amax = 900, smax = 1, smin = 1e-2;
+    var itrmax = 100, iota = 1.0, eps = 1e-5, movelimit = 0.05, weightlimit = 0.5, p = 3;
+    var s = new Array(_line.length), snew = new Array(_line.length);
+    for (var k = 0; k < _line.length; ++k) {
+        s[k] = 0.5;
+        _line[k].area = amax * Math.pow(s[k], p);
+    }
+    //  Initialize
+    var g0 = 0;
+    for (var k = 0; k < _line.length; ++k) {
+        g0 += amax * s[k] * _line[k].point[0].Distance(_line[k].point[1]);
+    }
+    //  Optimization loop
+    var dfdd = new Array(_line.length), dgdd = new Array(_line.length);
+    for (var itr = 0; itr < itrmax; ++itr) {
+        //  Set area from design variable
+        for (var k = 0; k < _line.length; ++k) {
+            _line[k].area = amax * Math.pow(s[k], p);
+        }
+        //  Get constraint function value and sensitivity
+        var gnow = -1;
+        for (var k = 0; k < _line.length; ++k) {
+            gnow += amax * s[k] * _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
+            dgdd[k] = amax * _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
+        }
+        //  Get objective function value
+        var fnow = 0;
+        Solve(_point, _line, false);
+        for (var k = 0; k < _point.length; ++k) {
+            fnow += _point[k].ux * _point[k].forcex + _point[k].uy * _point[k].forcey;
+        }
+        //  Get objective function sensitivity
+        for (var k = 0; k < _line.length; ++k) {
+            dfdd[k] = 0;
+            var Ke = _line[k].SensitivityMatrix();
+            for (var i = 0; i < _line[k].point.length; ++i) {
+                var uxi = _line[k].point[i].ux, uyi = _line[k].point[i].uy, uti = _line[k].point[i].ut;
+                for (var j = 0; j < _line[k].point.length; ++j) {
+                    var uxj = _line[k].point[j].ux, uyj = _line[k].point[j].uy, utj = _line[k].point[j].ut;
+                    dfdd[k] -= uxi * Ke[3 * i + 0][3 * j + 0] * uxj + uxi * Ke[3 * i + 0][3 * j + 1] * uyj + uxi * Ke[3 * i + 0][3 * j + 2] * utj
+                        + uyi * Ke[3 * i + 1][3 * j + 0] * uxj + uyi * Ke[3 * i + 1][3 * j + 1] * uyj + uyi * Ke[3 * i + 1][3 * j + 2] * utj
+                        + uti * Ke[3 * i + 2][3 * j + 0] * uxj + uti * Ke[3 * i + 2][3 * j + 1] * uyj + uti * Ke[3 * i + 2][3 * j + 2] * utj;
+                }
+            }
+            dfdd[k] *= amax * p * Math.pow(s[k], (p - 1));
+        }
+        //  Update design variable
+        var lambda0 = 0, lambda1 = 1e4, lambda = void 0;
+        while (lambda1 - lambda0 > eps * (lambda1 + lambda0)) {
+            lambda = 0.5 * (lambda1 + lambda0);
+            for (var k = 0; k < _line.length; ++k) {
+                snew[k] = Math.pow(-dfdd[k] / (dgdd[k] * lambda), iota) * s[k];
+                if (snew[k] < Math.max(smin, (1.0 - movelimit) * s[k])) {
+                    snew[k] = Math.max(smin, (1.0 - movelimit) * s[k]);
+                }
+                else if (snew[k] > Math.min(smax, (1.0 + movelimit) * s[k])) {
+                    snew[k] = Math.min(smax, (1.0 + movelimit) * s[k]);
+                }
+            }
+            var gnew = 0;
+            for (var k = 0; k < _line.length; ++k) {
+                gnew += amax * snew[k] * _line[k].point[0].Distance(_line[k].point[1]);
+            }
+            if (gnew > weightlimit * g0) {
+                lambda0 = lambda;
+            }
+            else {
+                lambda1 = lambda;
+            }
+        }
+        for (var k = 0; k < _line.length; ++k) {
+            s[k] = snew[k];
+        }
+        console.log(itr, fnow, gnow);
+        //console.log("itr", itr, "lambda", lambda, "g", gnow, "dfdd", dfdd, "dgdd", dgdd, "dnew", dnew);
+    }
+    //  Export result
+    while (_$svg.firstChild) {
+        _$svg.removeChild(_$svg.firstChild);
+    }
+    for (var k = 0; k < _line.length; ++k) {
+        var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        $line.setAttributeNS(null, "x1", "" + _line[k].point[0].x);
+        $line.setAttributeNS(null, "y1", "" + _line[k].point[0].y);
+        $line.setAttributeNS(null, "x2", "" + _line[k].point[1].x);
+        $line.setAttributeNS(null, "y2", "" + _line[k].point[1].y);
+        $line.setAttributeNS(null, "stroke", "black");
+        $line.setAttributeNS(null, "stroke-width", Math.sqrt(_line[k].area) + "px");
+        _$svg.appendChild($line);
+    }
+};
+/// <reference path="point.ts">
 var Line = /** @class */ (function () {
     function Line(_p1, _p2) {
         var _this = this;
@@ -20,12 +292,13 @@ var Line = /** @class */ (function () {
             $line1.setAttributeNS(null, "x2", "" + _this.point[1].x);
             $line1.setAttributeNS(null, "y2", "" + _this.point[1].y);
             $line1.setAttributeNS(null, "stroke", "black");
+            $line1.setAttributeNS(null, "stroke-width", "5");
             _this.$line.appendChild($line1);
             for (var i = 0; i < _this.point.length; ++i) {
                 var $circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 $circle.setAttributeNS(null, "cx", "" + _this.point[i].x);
                 $circle.setAttributeNS(null, "cy", "" + _this.point[i].y);
-                $circle.setAttributeNS(null, "r", "" + 5);
+                $circle.setAttributeNS(null, "r", "" + 20);
                 $circle.setAttributeNS(null, "stroke", "black");
                 _this.$line.appendChild($circle);
             }
@@ -45,7 +318,7 @@ var Line = /** @class */ (function () {
             var d1 = _this.point[0].Distance(_p);
             var d2 = _this.point[1].Distance(_p);
             var d3 = _this.point[0].Distance(_this.point[1]);
-            return d0 < 5 && d1 < d3 + 5 && d2 < d3 + 5;
+            return d0 < 10 && d1 < d3 + 10 && d2 < d3 + 10;
         };
         this.StiffnessMatrix = function () {
             var A = _this.area, I = Math.pow(_this.area, 2) / (4 * Math.PI), L = _this.point[0].Distance(_this.point[1]);
@@ -151,155 +424,6 @@ var Line = /** @class */ (function () {
     }
     return Line;
 }());
-/// <reference path="point.ts">
-/// <reference path="line.ts">
-/// <reference path="solver.ts">
-/// <reference path="grandstructure.ts">
-var PointList = [];
-var Point0, Point1;
-var LineList = [];
-var Mode = "beam";
-var $svg = document.getElementById("svg");
-var $guide = document.getElementById("guide");
-var $guide_length = document.getElementById("guide_length");
-var $svg_model = document.getElementById("svg_model");
-var $svg_bc = document.getElementById("svg_bc");
-var $svg_result = document.getElementById("svg_result");
-var $svg_opt = document.getElementById("svg_opt");
-var $mode = document.getElementById("form_mode");
-var load = function () {
-    $svg.setAttributeNS(null, "width", "" + 0.95 * document.documentElement.clientWidth);
-    $svg.setAttributeNS(null, "height", "" + 0.95 * (document.documentElement.clientHeight - document.getElementById("row_buttons").clientHeight));
-    var $grid = document.getElementById("grid");
-    $grid.setAttributeNS(null, "width", "" + 0.95 * document.documentElement.clientWidth);
-    $grid.setAttributeNS(null, "height", "" + 0.95 * (document.documentElement.clientHeight - document.getElementById("row_buttons").clientHeight));
-};
-load();
-window.onresize = load;
-$svg.addEventListener("mousedown", function (e) {
-    Mode = $mode.elements["options"].value;
-    if (e.buttons === 1) {
-        Point0 = new Point(e.clientX, e.clientY);
-        var ischanged = false;
-        switch (Mode) {
-            case "beam":
-            case "load":
-                Point0 = OverwritePoint(Point0, PointList);
-                $guide.setAttributeNS(null, "x1", "" + Point0.x);
-                $guide.setAttributeNS(null, "y1", "" + Point0.y);
-                $guide.setAttributeNS(null, "x2", "" + Point0.x);
-                $guide.setAttributeNS(null, "y2", "" + Point0.y);
-                $guide.setAttributeNS(null, "stroke-opacity", "" + 1.0);
-                $guide_length.setAttributeNS(null, "opacity", "" + 1.0);
-                break;
-            case "fix":
-                for (var i = PointList.length - 1; i >= 0; --i) {
-                    if (PointList[i].Distance(Point0) < 10) {
-                        PointList[i].Fix($svg_bc);
-                        ischanged = true;
-                    }
-                }
-                break;
-            case "delete":
-                for (var i = LineList.length - 1; i >= 0; --i) {
-                    if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
-                        LineList[i].Dispose($svg_model, $svg_result);
-                        LineList.splice(i, 1);
-                        ischanged = true;
-                    }
-                }
-                for (var i = PointList.length - 1; i >= 0; --i) {
-                    if (PointList[i].shared === 0) {
-                        PointList[i].Dispose($svg_bc);
-                        PointList.splice(i, 1);
-                    }
-                }
-                break;
-        }
-        if (ischanged) {
-            $svg_model.setAttributeNS(null, "opacity", "" + 1.0);
-            $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
-            $svg_opt.setAttributeNS(null, "opacity", "" + 0.0);
-        }
-    }
-});
-$svg.addEventListener("mousemove", function (e) {
-    if (e.buttons === 1 && (Mode === "beam" || (Mode === "load" && Point0.shared && !Point0.isforced))) {
-        if (e.shiftKey) {
-            if (Math.abs(Point0.x - e.clientX) > Math.abs(Point0.y - e.clientY)) {
-                Point1 = OverwritePointX(new Point(e.clientX, Point0.y), PointList);
-            }
-            else {
-                Point1 = OverwritePointY(new Point(Point0.x, e.clientY), PointList);
-            }
-        }
-        else {
-            Point1 = new Point(e.clientX, e.clientY);
-        }
-        Point1 = OverwritePoint(Point1, PointList);
-        $guide.setAttributeNS(null, "x2", "" + Point1.x);
-        $guide.setAttributeNS(null, "y2", "" + Point1.y);
-        $guide_length.setAttributeNS(null, "x", "" + (Point0.x + Point1.x) / 2);
-        $guide_length.setAttributeNS(null, "y", "" + (Point0.y + Point1.y) / 2);
-        $guide_length.innerHTML = "" + Point0.Distance(Point1).toFixed();
-    }
-});
-$svg.addEventListener("mouseup", function (e) {
-    if (e.button === 0) {
-        $guide.setAttributeNS(null, "stroke-opacity", "" + 0.0);
-        $guide_length.setAttributeNS(null, "opacity", "" + 0.0);
-        $guide_length.innerHTML = "";
-        if ((Mode === "beam" || (Mode === "load" && Point0.shared)) && Point0.Distance(Point1) > 20) {
-            $svg_model.setAttributeNS(null, "opacity", "" + 1.0);
-            $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
-            $svg_opt.setAttributeNS(null, "opacity", "" + 0.0);
-            switch (Mode) {
-                case "beam":
-                    if (!Point0.shared) {
-                        PointList.push(Point0);
-                    }
-                    if (!Point1.shared) {
-                        PointList.push(Point1);
-                    }
-                    var line = new Line(Point0, Point1);
-                    LineList.push(line);
-                    line.Draw($svg_model);
-                    console.log(PointList, LineList);
-                    break;
-                case "load":
-                    Point0.Force($svg_bc, Point1);
-                    break;
-            }
-        }
-    }
-});
-$svg.addEventListener("mouseleave", function (e) {
-    if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
-        $guide.setAttributeNS(null, "stroke-opacity", "" + 0.0);
-        $guide_length.setAttributeNS(null, "opacity", "" + 0.0);
-        $guide_length.innerHTML = "";
-    }
-});
-$svg.addEventListener("mouseenter", function (e) {
-    if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
-        $guide.setAttributeNS(null, "stroke-opacity", "" + 1.0);
-        $guide_length.setAttributeNS(null, "opacity", "" + 1.0);
-    }
-});
-var $btn_analyse = document.getElementById("btn_analyse");
-$btn_analyse.addEventListener("click", function (e) {
-    Solve(PointList, LineList, true, $svg_result);
-    $svg_model.setAttributeNS(null, "opacity", "" + 1.0);
-    $svg_result.setAttributeNS(null, "opacity", "" + 1.0);
-    $svg_opt.setAttributeNS(null, "opacity", "" + 0.0);
-});
-var $btn_optimize = document.getElementById("btn_optimize");
-$btn_optimize.addEventListener("click", function (e) {
-    Optimize(PointList, LineList, $svg_opt);
-    $svg_model.setAttributeNS(null, "opacity", "" + 0.0);
-    $svg_result.setAttributeNS(null, "opacity", "" + 0.0);
-    $svg_opt.setAttributeNS(null, "opacity", "" + 1.0);
-});
 var Point = /** @class */ (function () {
     function Point(_x, _y) {
         var _this = this;
@@ -320,11 +444,11 @@ var Point = /** @class */ (function () {
             if (!_this.isfixed) {
                 _this.$fix = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 var $triangle1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                $triangle1.setAttributeNS(null, "d", "M" + _this.x + " " + _this.y + " L" + (_this.x - 10) + " " + (_this.y + 7) + " L" + (_this.x - 10) + " " + (_this.y - 7) + " Z");
+                $triangle1.setAttributeNS(null, "d", "M" + _this.x + " " + _this.y + " L" + (_this.x - 30) + " " + (_this.y + 21) + " L" + (_this.x - 30) + " " + (_this.y - 21) + " Z");
                 $triangle1.setAttributeNS(null, "fill", "blue");
                 _this.$fix.appendChild($triangle1);
                 var $triangle2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                $triangle2.setAttributeNS(null, "d", "M" + _this.x + " " + _this.y + " L" + (_this.x - 7) + " " + (_this.y + 10) + " L" + (_this.x + 7) + " " + (_this.y + 10) + " Z");
+                $triangle2.setAttributeNS(null, "d", "M" + _this.x + " " + _this.y + " L" + (_this.x - 21) + " " + (_this.y + 30) + " L" + (_this.x + 21) + " " + (_this.y + 30) + " Z");
                 $triangle2.setAttributeNS(null, "fill", "blue");
                 _this.$fix.appendChild($triangle2);
                 _$svg.appendChild(_this.$fix);
@@ -350,22 +474,25 @@ var Point = /** @class */ (function () {
                 $line1.setAttributeNS(null, "x2", "" + _p.x);
                 $line1.setAttributeNS(null, "y2", "" + _p.y);
                 $line1.setAttributeNS(null, "stroke", "red");
+                $line1.setAttributeNS(null, "stroke-width", "5");
                 _this.$force.appendChild($line1);
                 var d = Math.sqrt(Math.pow((_p.x - _this.x), 2) + Math.pow((_p.y - _this.y), 2));
                 var c = (_p.x - _this.x) / d, s = (_p.y - _this.y) / d;
                 var $line2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 $line2.setAttributeNS(null, "x1", "" + _p.x);
                 $line2.setAttributeNS(null, "y1", "" + _p.y);
-                $line2.setAttributeNS(null, "x2", "" + (_p.x + 10 * (-c + 0.5 * s)));
-                $line2.setAttributeNS(null, "y2", "" + (_p.y + 10 * (-s - 0.5 * c)));
+                $line2.setAttributeNS(null, "x2", "" + (_p.x + 50 * (-c + 0.5 * s)));
+                $line2.setAttributeNS(null, "y2", "" + (_p.y + 50 * (-s - 0.5 * c)));
                 $line2.setAttributeNS(null, "stroke", "red");
+                $line2.setAttributeNS(null, "stroke-width", "5");
                 _this.$force.appendChild($line2);
                 var $line3 = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 $line3.setAttributeNS(null, "x1", "" + _p.x);
                 $line3.setAttributeNS(null, "y1", "" + _p.y);
-                $line3.setAttributeNS(null, "x2", "" + (_p.x + 10 * (-c - 0.5 * s)));
-                $line3.setAttributeNS(null, "y2", "" + (_p.y + 10 * (-s + 0.5 * c)));
+                $line3.setAttributeNS(null, "x2", "" + (_p.x + 50 * (-c - 0.5 * s)));
+                $line3.setAttributeNS(null, "y2", "" + (_p.y + 50 * (-s + 0.5 * c)));
                 $line3.setAttributeNS(null, "stroke", "red");
+                $line3.setAttributeNS(null, "stroke-width", "5");
                 _this.$force.appendChild($line3);
                 _$svg.appendChild(_this.$force);
                 _this.isforced = true;
@@ -402,7 +529,7 @@ var Point = /** @class */ (function () {
 var OverwritePoint = function (_point, _pointlist) {
     var point = _point;
     for (var i = 0; i < _pointlist.length; ++i) {
-        if (_point.Distance(_pointlist[i]) < 5) {
+        if (_point.Distance(_pointlist[i]) < 20) {
             point = _pointlist[i];
         }
     }
@@ -411,7 +538,7 @@ var OverwritePoint = function (_point, _pointlist) {
 var OverwritePointX = function (_point, _pointlist) {
     var point = _point;
     for (var i = 0; i < _pointlist.length; ++i) {
-        if (Math.abs(point.x - _pointlist[i].x) < 5) {
+        if (Math.abs(point.x - _pointlist[i].x) < 20) {
             point.x = _pointlist[i].x;
         }
     }
@@ -420,7 +547,7 @@ var OverwritePointX = function (_point, _pointlist) {
 var OverwritePointY = function (_point, _pointlist) {
     var point = _point;
     for (var i = 0; i < _pointlist.length; ++i) {
-        if (Math.abs(point.y - _pointlist[i].y) < 5) {
+        if (Math.abs(point.y - _pointlist[i].y) < 20) {
             point.y = _pointlist[i].y;
         }
     }
@@ -572,100 +699,4 @@ var Gauss = function (_A, _b) {
         x[i] /= _A[i][i];
     }
     return x;
-};
-/// <reference path="point.ts">
-/// <reference path="line.ts">
-/// <reference path="solver.ts">
-var Optimize = function (_point, _line, _$svg) {
-    //  Parameters
-    var amax = 900, smax = 1, smin = 1e-2;
-    var itrmax = 100, iota = 1.0, eps = 1e-5, movelimit = 0.05, weightlimit = 0.5, p = 3;
-    var s = new Array(_line.length), snew = new Array(_line.length);
-    for (var k = 0; k < _line.length; ++k) {
-        s[k] = 0.5;
-        _line[k].area = amax * Math.pow(s[k], p);
-    }
-    //  Initialize
-    var g0 = 0;
-    for (var k = 0; k < _line.length; ++k) {
-        g0 += amax * s[k] * _line[k].point[0].Distance(_line[k].point[1]);
-    }
-    //  Optimization loop
-    var dfdd = new Array(_line.length), dgdd = new Array(_line.length);
-    for (var itr = 0; itr < itrmax; ++itr) {
-        //  Set area from design variable
-        for (var k = 0; k < _line.length; ++k) {
-            _line[k].area = amax * Math.pow(s[k], p);
-        }
-        //  Get constraint function value and sensitivity
-        var gnow = -1;
-        for (var k = 0; k < _line.length; ++k) {
-            gnow += amax * s[k] * _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
-            dgdd[k] = amax * _line[k].point[0].Distance(_line[k].point[1]) / (g0 * weightlimit);
-        }
-        //  Get objective function value
-        var fnow = 0;
-        Solve(_point, _line, false);
-        for (var k = 0; k < _point.length; ++k) {
-            fnow += _point[k].ux * _point[k].forcex + _point[k].uy * _point[k].forcey;
-        }
-        //  Get objective function sensitivity
-        for (var k = 0; k < _line.length; ++k) {
-            dfdd[k] = 0;
-            var Ke = _line[k].SensitivityMatrix();
-            for (var i = 0; i < _line[k].point.length; ++i) {
-                var uxi = _line[k].point[i].ux, uyi = _line[k].point[i].uy, uti = _line[k].point[i].ut;
-                for (var j = 0; j < _line[k].point.length; ++j) {
-                    var uxj = _line[k].point[j].ux, uyj = _line[k].point[j].uy, utj = _line[k].point[j].ut;
-                    dfdd[k] -= uxi * Ke[3 * i + 0][3 * j + 0] * uxj + uxi * Ke[3 * i + 0][3 * j + 1] * uyj + uxi * Ke[3 * i + 0][3 * j + 2] * utj
-                        + uyi * Ke[3 * i + 1][3 * j + 0] * uxj + uyi * Ke[3 * i + 1][3 * j + 1] * uyj + uyi * Ke[3 * i + 1][3 * j + 2] * utj
-                        + uti * Ke[3 * i + 2][3 * j + 0] * uxj + uti * Ke[3 * i + 2][3 * j + 1] * uyj + uti * Ke[3 * i + 2][3 * j + 2] * utj;
-                }
-            }
-            dfdd[k] *= amax * p * Math.pow(s[k], (p - 1));
-        }
-        //  Update design variable
-        var lambda0 = 0, lambda1 = 1e4, lambda = void 0;
-        while (lambda1 - lambda0 > eps * (lambda1 + lambda0)) {
-            lambda = 0.5 * (lambda1 + lambda0);
-            for (var k = 0; k < _line.length; ++k) {
-                snew[k] = Math.pow(-dfdd[k] / (dgdd[k] * lambda), iota) * s[k];
-                if (snew[k] < Math.max(smin, (1.0 - movelimit) * s[k])) {
-                    snew[k] = Math.max(smin, (1.0 - movelimit) * s[k]);
-                }
-                else if (snew[k] > Math.min(smax, (1.0 + movelimit) * s[k])) {
-                    snew[k] = Math.min(smax, (1.0 + movelimit) * s[k]);
-                }
-            }
-            var gnew = 0;
-            for (var k = 0; k < _line.length; ++k) {
-                gnew += amax * snew[k] * _line[k].point[0].Distance(_line[k].point[1]);
-            }
-            if (gnew > weightlimit * g0) {
-                lambda0 = lambda;
-            }
-            else {
-                lambda1 = lambda;
-            }
-        }
-        for (var k = 0; k < _line.length; ++k) {
-            s[k] = snew[k];
-        }
-        console.log(itr, fnow, gnow);
-        //console.log("itr", itr, "lambda", lambda, "g", gnow, "dfdd", dfdd, "dgdd", dgdd, "dnew", dnew);
-    }
-    //  Export result
-    while (_$svg.firstChild) {
-        _$svg.removeChild(_$svg.firstChild);
-    }
-    for (var k = 0; k < _line.length; ++k) {
-        var $line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        $line.setAttributeNS(null, "x1", "" + _line[k].point[0].x);
-        $line.setAttributeNS(null, "y1", "" + _line[k].point[0].y);
-        $line.setAttributeNS(null, "x2", "" + _line[k].point[1].x);
-        $line.setAttributeNS(null, "y2", "" + _line[k].point[1].y);
-        $line.setAttributeNS(null, "stroke", "black");
-        $line.setAttributeNS(null, "stroke-width", Math.sqrt(_line[k].area) + "px");
-        _$svg.appendChild($line);
-    }
 };

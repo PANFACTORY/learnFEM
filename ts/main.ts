@@ -27,63 +27,62 @@ const load = () => {
 load();
 window.onresize = load;
 
-$svg.addEventListener("mousedown", (e) => {
-    Mode = $mode.elements["options"].value;
-    if (e.buttons === 1) {
-        Point0 = new Point(e.clientX, e.clientY);
-        let ischanged : boolean = false;
-        switch (Mode) {
-            case "beam":
-            case "load":
-                Point0 = OverwritePoint(Point0, PointList);
-                $guide.setAttributeNS(null, "x1", `${Point0.x}`);
-                $guide.setAttributeNS(null, "y1", `${Point0.y}`);
-                $guide.setAttributeNS(null, "x2", `${Point0.x}`);
-                $guide.setAttributeNS(null, "y2", `${Point0.y}`);
-                $guide.setAttributeNS(null, "stroke-opacity", `${1.0}`);
-                $guide_length.setAttributeNS(null, "opacity", `${1.0}`);
-                break;
-            case "fix":
-                for (let i : number = PointList.length - 1; i >= 0; --i) {
-                    if(PointList[i].Distance(Point0) < 10) {
-                        PointList[i].Fix($svg_bc);
-                        ischanged = true;
-                    }
+const mousedownEvent = (clientX, clientY) => {
+    Point0 = new Point(clientX, clientY);
+    let ischanged : boolean = false;
+    switch (Mode) {
+        case "beam":
+        case "load":
+            Point0 = OverwritePoint(Point0, PointList);
+            $guide.setAttributeNS(null, "x1", `${Point0.x}`);
+            $guide.setAttributeNS(null, "y1", `${Point0.y}`);
+            $guide.setAttributeNS(null, "x2", `${Point0.x}`);
+            $guide.setAttributeNS(null, "y2", `${Point0.y}`);
+            $guide.setAttributeNS(null, "stroke-width", "3");
+            $guide.setAttributeNS(null, "stroke-opacity", `${1.0}`);
+            $guide_length.setAttributeNS(null, "opacity", `${1.0}`);
+            break;
+        case "fix":
+            for (let i : number = PointList.length - 1; i >= 0; --i) {
+                if(PointList[i].Distance(Point0) < 10) {
+                    PointList[i].Fix($svg_bc);
+                    ischanged = true;
                 }
-                break;
-            case "delete":
-                for (let i : number = LineList.length - 1; i >= 0; --i) {
-                    if (LineList[i].IsHit(new Point(e.clientX, e.clientY))) {
-                        LineList[i].Dispose($svg_model, $svg_result);
-                        LineList.splice(i, 1);
-                        ischanged = true;
-                    }
+            }
+            break;
+        case "delete":
+            for (let i : number = LineList.length - 1; i >= 0; --i) {
+                if (LineList[i].IsHit(new Point(clientX, clientY))) {
+                    LineList[i].Dispose($svg_model, $svg_result);
+                    LineList.splice(i, 1);
+                    ischanged = true;
                 }
-                for (let i : number = PointList.length - 1; i >= 0; --i) {
-                    if(PointList[i].shared === 0) {
-                        PointList[i].Dispose($svg_bc);
-                        PointList.splice(i, 1);
-                    }
+            }
+            for (let i : number = PointList.length - 1; i >= 0; --i) {
+                if(PointList[i].shared === 0) {
+                    PointList[i].Dispose($svg_bc);
+                    PointList.splice(i, 1);
                 }
-                break;
-        }
-        if (ischanged) {
-            $svg_model.setAttributeNS(null, "opacity", `${1.0}`);
-            $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
-            $svg_opt.setAttributeNS(null, "opacity", `${0.0}`);
-        }
+            }
+            break;
     }
-});
-$svg.addEventListener("mousemove", (e) => {
-    if (e.buttons === 1 && (Mode === "beam" || (Mode === "load" && Point0.shared && !Point0.isforced))) {
-        if (e.shiftKey) {
-            if (Math.abs(Point0.x - e.clientX) > Math.abs(Point0.y - e.clientY)) {
-                Point1 = OverwritePointX(new Point(e.clientX, Point0.y), PointList);
+    if (ischanged) {
+        $svg_model.setAttributeNS(null, "opacity", `${1.0}`);
+        $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
+        $svg_opt.setAttributeNS(null, "opacity", `${0.0}`);
+    }
+}
+
+const mousemoveEvent = (clientX, clientY, shiftKey) => {
+    if (Mode === "beam" || (Mode === "load" && Point0.shared && !Point0.isforced)) {
+        if (shiftKey) {
+            if (Math.abs(Point0.x - clientX) > Math.abs(Point0.y - clientY)) {
+                Point1 = OverwritePointX(new Point(clientX, Point0.y), PointList);
             } else {
-                Point1 = OverwritePointY(new Point(Point0.x, e.clientY), PointList);
+                Point1 = OverwritePointY(new Point(Point0.x, clientY), PointList);
             }
         } else {
-            Point1 = new Point(e.clientX, e.clientY);
+            Point1 = new Point(clientX, clientY);
         }
         Point1 = OverwritePoint(Point1, PointList);
         $guide.setAttributeNS(null, "x2", `${Point1.x}`);
@@ -92,48 +91,82 @@ $svg.addEventListener("mousemove", (e) => {
         $guide_length.setAttributeNS(null, "y", `${(Point0.y + Point1.y)/2}`);
         $guide_length.innerHTML = `${Point0.Distance(Point1).toFixed()}`;    
     }
-});
-$svg.addEventListener("mouseup", (e) => {
-    if (e.button === 0) {
-        $guide.setAttributeNS(null, "stroke-opacity", `${0.0}`);
-        $guide_length.setAttributeNS(null, "opacity", `${0.0}`);
-        $guide_length.innerHTML = ""; 
-        if ((Mode === "beam" || (Mode === "load" && Point0.shared)) && Point0.Distance(Point1) > 20) {
-            $svg_model.setAttributeNS(null, "opacity", `${1.0}`);
-            $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
-            $svg_opt.setAttributeNS(null, "opacity", `${0.0}`);
-            switch (Mode) {
-                case "beam":
-                    if (!Point0.shared) {
-                        PointList.push(Point0);
-                    }
-                    if (!Point1.shared) {
-                        PointList.push(Point1);
-                    }
-                    const line = new Line(Point0, Point1);
-                    LineList.push(line)
-                    line.Draw($svg_model);
-                    console.log(PointList, LineList);
-                    break;
-                case "load":
-                    Point0.Force($svg_bc, Point1);
-                    break;
-            }
+}
+
+const mouseupEvent = () => {
+    $guide.setAttributeNS(null, "stroke-opacity", `${0.0}`);
+    $guide_length.setAttributeNS(null, "opacity", `${0.0}`);
+    $guide_length.innerHTML = "";
+    if ((Mode === "beam" || (Mode === "load" && Point0.shared)) && Point0.Distance(Point1) > 20) {
+        $svg_model.setAttributeNS(null, "opacity", `${1.0}`);
+        $svg_result.setAttributeNS(null, "opacity", `${0.0}`);
+        $svg_opt.setAttributeNS(null, "opacity", `${0.0}`);
+        switch (Mode) {
+            case "beam":
+                if (!Point0.shared) {
+                    PointList.push(Point0);
+                }
+                if (!Point1.shared) {
+                    PointList.push(Point1);
+                }
+                const line = new Line(Point0, Point1);
+                LineList.push(line)
+                line.Draw($svg_model);
+                console.log(PointList, LineList);
+                break;
+            case "load":
+                Point0.Force($svg_bc, Point1);
+                break;
         }
     }
-});
-$svg.addEventListener("mouseleave", (e) => {
+}
+
+const mouseleaveEvent = (e) => {
     if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
         $guide.setAttributeNS(null, "stroke-opacity", `${0.0}`);
         $guide_length.setAttributeNS(null, "opacity", `${0.0}`);
         $guide_length.innerHTML = "";
     }
-});
-$svg.addEventListener("mouseenter", (e) => {
+}
+
+const mouseenterEvent = (e) => {
     if (e.button === 0 && (Mode === "beam" || Mode === "load")) {
         $guide.setAttributeNS(null, "stroke-opacity", `${1.0}`);
         $guide_length.setAttributeNS(null, "opacity", `${1.0}`);
     }
+}
+
+//  For PC
+$svg.addEventListener("mousedown", (e) => { 
+    Mode = $mode.elements["options"].value;
+    if (e.buttons === 1) { 
+        mousedownEvent(e.clientX, e.clientY); 
+    }
+});
+$svg.addEventListener("mousemove", (e) => { 
+    if (e.buttons === 1) { 
+        mousemoveEvent(e.clientX, e.clientY, e.shiftKey);
+    }
+});
+$svg.addEventListener("mouseup", (e) => {
+    if (e.button === 0) {
+        mouseupEvent(); 
+    }
+});
+$svg.addEventListener("mouseleave", mouseleaveEvent);
+$svg.addEventListener("mouseenter", mouseenterEvent);
+
+// For Mobile phone
+$svg.addEventListener("touchstart", (e) => { 
+    Mode = $mode.elements["options"].value;
+    mousedownEvent(e.touches[0].clientX, e.touches[0].clientY);
+});
+$svg.addEventListener("touchmove", (e) => { 
+    e.preventDefault();
+    mousemoveEvent(e.touches[0].clientX, e.touches[0].clientY, false);
+});
+$svg.addEventListener("touchend", (e) => { 
+    mouseupEvent(); 
 });
 
 const $btn_analyse = document.getElementById("btn_analyse");

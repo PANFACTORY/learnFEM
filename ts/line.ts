@@ -38,12 +38,13 @@ class Line {
         $line1.setAttributeNS(null, "x2", `${this.point[1].x}`);
         $line1.setAttributeNS(null, "y2", `${this.point[1].y}`);
         $line1.setAttributeNS(null, "stroke", "black");
+        $line1.setAttributeNS(null, "stroke-width", "5");
         this.$line.appendChild($line1);
         for (let i : number = 0; i < this.point.length; ++i) {
             const $circle : SVGElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             $circle.setAttributeNS(null, "cx", `${this.point[i].x}`);
             $circle.setAttributeNS(null, "cy", `${this.point[i].y}`);
-            $circle.setAttributeNS(null, "r", `${5}`);
+            $circle.setAttributeNS(null, "r", `${20}`);
             $circle.setAttributeNS(null, "stroke", "black");
             this.$line.appendChild($circle);
         }
@@ -64,7 +65,7 @@ class Line {
         var d1 = this.point[0].Distance(_p);
         var d2 = this.point[1].Distance(_p);
         var d3 = this.point[0].Distance(this.point[1]);
-        return d0 < 5 && d1 < d3 + 5 && d2 < d3 + 5;
+        return d0 < 10 && d1 < d3 + 10 && d2 < d3 + 10;
     }
 
     StiffnessMatrix = () : number[][] => {
