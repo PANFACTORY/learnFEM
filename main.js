@@ -578,8 +578,8 @@ var Gauss = function (_A, _b) {
 /// <reference path="solver.ts">
 var Optimize = function (_point, _line, _$svg) {
     //  Parameters
-    var amax = 100, smax = 1, smin = 1e-2;
-    var itrmax = 100, iota = 0.5, eps = 1e-5, movelimit = 0.05, weightlimit = 0.5, p = 3;
+    var amax = 900, smax = 1, smin = 1e-2;
+    var itrmax = 100, iota = 1.0, eps = 1e-5, movelimit = 0.05, weightlimit = 0.5, p = 3;
     var s = new Array(_line.length), snew = new Array(_line.length);
     for (var k = 0; k < _line.length; ++k) {
         s[k] = 0.5;

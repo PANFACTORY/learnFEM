@@ -4,8 +4,8 @@
 
 const Optimize = (_point : Point[], _line : Line[], _$svg) => {
     //  Parameters
-    let amax : number = 100, smax : number = 1, smin : number = 1e-2;
-    let itrmax : number = 100, iota : number = 0.5, eps : number = 1e-5, movelimit : number = 0.05, weightlimit : number = 0.5, p : number = 3;
+    let amax : number = 900, smax : number = 1, smin : number = 1e-2;
+    let itrmax : number = 100, iota : number = 1.0, eps : number = 1e-5, movelimit : number = 0.05, weightlimit : number = 0.5, p : number = 3;
     let s : number[] = new Array(_line.length), snew : number[] = new Array(_line.length);
     for (let k : number = 0; k < _line.length; ++k) {
         s[k] = 0.5;
